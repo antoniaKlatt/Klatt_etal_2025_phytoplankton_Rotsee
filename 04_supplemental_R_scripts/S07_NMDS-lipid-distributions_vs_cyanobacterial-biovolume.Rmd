@@ -10,15 +10,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #loading packages 
 
-library(vegan)
 library(readr)
+library(here)
+library(vegan)
 library(ggplot2)
 library(reshape2)
 library(cowplot)
 
-#import lipid concentration data with duplopterol (relative concentrations)
+#import relative lipid concentrations sorted by relative cyanobacterial biovolume
 
-rel_lipid_conc_cyano <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\Rel_lipid_conc_cyanobacteria_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+rel_lipid_conc_cyano <- read.csv(here("01_Data","Rel_lipid_conc_cyanobacteria_biovolume_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 #note: data frame includes two different depths: surface water (A) and chlorophyll maximum depth (B)
 
