@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #loading packages
 
 library(readr)
+library(here)
 library(ggplot2)
 library(reshape2)
 library(cowplot)
@@ -18,7 +19,7 @@ Sys.setlocale("LC_ALL", "English")
 
 #import d2H data
 
-d2H_H2O_lipids <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\d2H_H2O_lipids_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+d2H_H2O_lipids <- read.csv (here("01_Data","d2H_H2O_lipids_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 
 #note: data frame includes two different depths: surface water (A) and chlorophyll maximum depth (B)
