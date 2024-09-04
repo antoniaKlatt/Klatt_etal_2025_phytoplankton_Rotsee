@@ -20,7 +20,7 @@ Sys.setlocale("LC_ALL", "English")
 
 #Import biovolume data
 
-phyto_zoo_bioVolume <- read.csv (here("01_Data","phyto_microzooplankton_biovolume_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+phyto_zoo_bioVolume <- read.csv(here("01_Data","phyto_microzooplankton_biovolume_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 #note: data frame includes two different depths: surface water (A) and chlorophyll maximum depth (B)
 
