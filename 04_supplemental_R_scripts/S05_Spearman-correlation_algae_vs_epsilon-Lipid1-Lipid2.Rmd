@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(readr)
+library(here)
 library(ggplot2)
 library(reshape2)
 library(cowplot)
@@ -23,12 +24,12 @@ library(grid)
 
 ## epsilon lipid1/lipid2 values
 
-epsilon_lipid1.2 <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\epsilon_lipid1_lipid2_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+epsilon_lipid1.2 <- read.csv(here("01_Data","epsilon_lipid1_lipid2_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 
 ## phytoplankton relative biovolume 
 
-phytoplankton_rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\phytoplankton_rel_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+phytoplankton_rel.bioVol <- read.csv(here("01_Data","phytoplankton_rel_biovolume_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 ### adding sum of cyanobacterial and green algal biovolume
 
@@ -37,7 +38,7 @@ phytoplankton_rel.bioVol$sum_cyano_green.algae <- rowSums(phytoplankton_rel.bioV
 
 ## eukaryotic algae relative biovolume 
 
-eukary.algae_rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\eukaryotic_algae_rel_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+eukary.algae_rel.bioVol <- read.csv(here("01_Data","eukaryotic_algae_rel_biovolume_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 
 #note: data frames include two different depths: surface water (A) and chlorophyll maximum depth (B)
