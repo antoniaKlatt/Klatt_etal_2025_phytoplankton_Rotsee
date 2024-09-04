@@ -28,7 +28,7 @@ eukary.algae_rel.bioVol <- read.csv (here("01_Data","eukaryotic_algae_rel_biovol
 
 #import data (reference data)
 
-## d2H lipid values algal culturing studies (Ladd et al., 2024)
+## d2H lipid values algal culturing studies (Ladd et al., 2024)  [https://doi.org/10.5061/dryad.nvx0k6f0v]
 
 eps_lipid1.2_cultures_mean_sd_dia <- read.csv (here("01_Data","epsilon.lipid12_cultures_diatoms_Ladd_etal_2024.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
