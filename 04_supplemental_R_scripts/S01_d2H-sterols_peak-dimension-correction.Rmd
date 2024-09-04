@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(readr)
+library(here)
 library(ggplot2)
 library(reshape2)
 library(cowplot)
@@ -17,7 +18,7 @@ Sys.setlocale("LC_ALL", "English")
 
 #import data
 
-d2H_cholOAc_stigmaOAc <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\Rotsee\\Rotsee2019 Water column\\Correlations\\Files for R\\files_Rotsee_watercolumn_1920\\d2Hm_d2Hreal_cholOAc_stigmaOAc.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+d2H_cholOAc_stigmaOAc <- read.csv(here("01_Data","d2Hm_d2Hreal_cholOAc_stigmaOAc.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 colnames(d2H_cholOAc_stigmaOAc) <- c("variable", "peak_area",  "d2H.1H", "epsilon_d2Hmeasured.d2Hreal")
 
