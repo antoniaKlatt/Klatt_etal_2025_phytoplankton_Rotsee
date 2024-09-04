@@ -16,21 +16,21 @@ library(cowplot)
 library(grid)
 library(gridExtra)
 
-#import data 
+#import data (this study)
 
 ## epsilon lipid1/lipid2 values
 
-epsilon_lipid1.2 <- read.csv (here("01_Data","epsilon_lipid1_lipid2_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+epsilon_lipid1.2 <- read.csv(here("01_Data","epsilon_lipid1_lipid2_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 ## eukaryotic algae relative biovolume 
 
-eukary.algae_rel.bioVol <- read.csv (here("01_Data","eukaryotic_algae_rel_biovolume_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+eukary.algae_rel.bioVol <- read.csv(here("01_Data","eukaryotic_algae_rel_biovolume_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 #import data (reference data)
 
-## d2H lipid values algal culturing studies (Ladd et al., 2024)  [https://doi.org/10.5061/dryad.nvx0k6f0v]
+## epsilon lipid1/lipid2 values diatom cultures (Ladd et al., 2024)  [https://doi.org/10.5061/dryad.nvx0k6f0v]
 
-eps_lipid1.2_cultures_mean_sd_dia <- read.csv (here("01_Data","epsilon.lipid12_cultures_diatoms_Ladd_etal_2024.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+eps_lipid1.2_cultures_mean_sd_dia <- read.csv(here("02_Reference_data","epsilon.lipid12_cultures_diatoms_Ladd_etal_2024.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 
 ## epsilon C16:0/sterol,epsilon sterol/phytol values and eukaryotic algal biovolume
