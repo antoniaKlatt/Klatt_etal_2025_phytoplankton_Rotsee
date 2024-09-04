@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #loading packages
 
 library(readr)
+library(here)
 library(ggplot2)
 library(dplyr)
 library(cowplot)
@@ -23,7 +24,7 @@ Sys.setlocale("LC_ALL", "English")
 
 #Ladd, et al. (2024): Taxon-specific hydrogen isotope signals in cultures and mesocosms facilitate ecosystem and hydroclimate reconstruction. doi: https://doi.org/10.31223/X57T30 
 
-alpha_lipid_cultures <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\alpha_lipid_water_algae_cultures_Ladd_etal_2024.csv",
+alpha_lipid_cultures <- read.csv (here("02_Reference_data",alpha_lipid_water_algae_cultures_Ladd_etal_2024.csv"),
                                   header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 ```
