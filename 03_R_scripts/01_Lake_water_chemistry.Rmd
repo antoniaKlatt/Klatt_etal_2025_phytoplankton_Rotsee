@@ -11,21 +11,22 @@ knitr::opts_chunk$set(echo = TRUE)
 #loading packages
 
 library(readr)
+library(here)
 library(ggplot2)
 library(cowplot)
 library(reshape2)
 
 #import oxygen and temperature data for different sampling dates
 
-Temp_Ox_ROT190410 <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\temp_oxygen_profile_watercolumn_ROT190410.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+Temp_Ox_ROT190410 <- read.csv(here("01_Data","temp_oxygen_profile_watercolumn_ROT190410.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
-Temp_Ox_ROT190717 <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\temp_oxygen_profile_watercolumn_ROT190717.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+Temp_Ox_ROT190717 <- read.csv(here("01_Data","temp_oxygen_profile_watercolumn_ROT190717.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
-Temp_Ox_ROT190925 <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\temp_oxygen_profile_watercolumn_ROT190925.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+Temp_Ox_ROT190925 <- read.csv(here("01_Data","temp_oxygen_profile_watercolumn_ROT190925.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
-Temp_Ox_ROT191023 <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\temp_oxygen_profile_watercolumn_ROT191023.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+Temp_Ox_ROT191023 <- read.csv(here("01_Data","temp_oxygen_profile_watercolumn_ROT191023.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
-Temp_Ox_ROT191218 <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\temp_oxygen_profile_watercolumn_ROT191218.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+Temp_Ox_ROT191218 <- read.csv(here("01_Data","temp_oxygen_profile_watercolumn_ROT191218.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 
 #reshape temperature and oxygen dataframes for each date
