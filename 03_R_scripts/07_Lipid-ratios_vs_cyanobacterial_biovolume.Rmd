@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #loading packages
 
 library(readr)
+library(here)
 library(ggplot2)
 library(reshape2)
 library(cowplot)
@@ -24,14 +25,11 @@ Sys.setlocale("LC_ALL", "English")
 
 ## lipid ratios (phytol:sterol ratios; C18:C16 ratios (FA))
 
-lipid_ratios <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\Lipid_ratios_ROT19-02.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+lipid_ratios <- read.csv(here("01_Data","Lipid_ratios_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 ## phytoplankton relative biovolume 
 
-phytoplankton_rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\phytoplankton_rel_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
-
-phytoplankton_total.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\phyto_microplankton_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
-
+phytoplankton_rel.bioVol <- read.csv(here("01_Data","phytoplankton_rel_biovolume_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 #note: data frames include two different depths: surface water (A) and chlorophyll maximum depth (B)
 
