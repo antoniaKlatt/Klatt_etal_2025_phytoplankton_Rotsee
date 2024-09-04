@@ -1,0 +1,130 @@
+---
+title: "04-Bacillariophyceae-Chrysophyceae_epsilon-Lipid1-Lipid2"
+author: "Antonia_Klatt"
+date: "2024-08-01"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+#loading packages
+
+library(readr)
+library(ggplot2)
+library(cowplot)
+library(grid)
+library(gridExtra)
+
+#import data 
+
+## epsilon lipid1/lipid2 values
+
+epsilon_lipid1.2 <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\epsilon_lipid1_lipid2_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+## eukaryotic algae relative biovolume 
+
+eukary.algae_rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\eukaryotic_algae_rel_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+#import data (reference data)
+
+## d2H lipid values algal culturing studies (Ladd et al., 2024)
+
+eps_lipid1.2_cultures_mean_sd_dia <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\Rotsee\\Rotsee2019 Water column\\Correlations\\Files for R\\files_Rotsee_watercolumn_1920\\epsilon.lipid12_cultures_mean_SD.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+
+## epsilon C16:0/sterol,epsilon sterol/phytol values and eukaryotic algal biovolume
+
+# sum diatoms + Chrysophyta 
+
+sum_ChrysoDia <- rowSums(eukary.algae_rel.bioVol[,c(3,4)])
+
+ChrysoDia_eps_lipid12 <- cbind.data.frame(sum_ChrysoDia, epsilon_lipid1.2[,3:4])
+
+
+colnames(ChrysoDia_eps_lipid12 ) <- c("sum_ChrysoDia", "epsilon_C16.0_sterol", "epsilon_sterol_phytol")
+
+row.names(ChrysoDia_eps_lipid12 ) <- eukary.algae_rel.bioVol$sample
+
+summary(lm(sum_ChrysoDia ~ epsilon_C16.0_sterol, data=ChrysoDia_eps_lipid12 )) 
+
+summary(lm(sum_ChrysoDia ~ epsilon_sterol_phytol, data=ChrysoDia_eps_lipid12 )) 
+
+
+#check correlations with single algal groups
+
+Eukary_epsilon_lipid12 <- cbind.data.frame(eukary.algae_rel.bioVol, epsilon_lipid1.2[,3:4])
+
+summary(lm(Chrysophyta_relBio ~ epsilon_C16.0_sterol, data=Eukary_epsilon_lipid12 )) 
+
+summary(lm(Diatoms_relBio ~ epsilon_C16.0_sterol, data=Eukary_epsilon_lipid12 ))
+
+summary(lm(Chrysophyta_relBio ~ epsilon_sterol_phytol, data=Eukary_epsilon_lipid12 )) 
+
+summary(lm(Diatoms_relBio ~ epsilon_sterol_phytol, data=Eukary_epsilon_lipid12 )) 
+
+```
+
+## plotting diatom + Chrysophyta biovolume vs. epsilon C16:0/sterol and epsilon sterol/phytol values
+
+```{r}
+
+## Fig. 5
+
+pChryso.dia_epsC16.sterol <- ggplot()+
+  geom_smooth(data=ChrysoDia_eps_lipid12,aes(x=sum_ChrysoDia,y=epsilon_C16.0_sterol), xseq = c(-5, 105), method="lm", linetype="dashed", color="goldenrod", fill="goldenrod1", alpha=0.1)+
+  geom_point(data=ChrysoDia_eps_lipid12,aes(x=sum_ChrysoDia,y=epsilon_C16.0_sterol), size=7, shape=1, color="goldenrod2", stroke=2)+
+ geom_errorbar(data= eps_lipid1.2_cultures_mean_sd_dia, aes(x=100, ymin = mean_epsilon_C16.0.sterol - sd_epsilon_C16.0.sterol, 
+                                                           ymax = mean_epsilon_C16.0.sterol + sd_epsilon_C16.0.sterol), color="gray56", width=5)+
+  geom_point(data=eps_lipid1.2_cultures_mean_sd_dia,aes(x=100,y= mean_epsilon_C16.0.sterol), size=7, shape=5, color="gray56", stroke=2)+
+  xlab(NULL)+ylab(expression(epsilon^{2}*""['C16:0/sterol']~("\u2030")))+ 
+  coord_cartesian(xlim=c(0,100), ylim= c(-70,250), clip="off")+
+  scale_y_continuous(breaks=c(-50,50,150,250))+
+  annotate("text",y= 255, x= 16,label=expression(bold(R^2~"= 0.11"~"*")), size=12, fontface=1, color="goldenrod")+
+  annotate("text",y= -55, x= 7.5,label=expression("n = 32"), size=10.5, color="goldenrod")+
+   annotate("text",x=-25,y=280,label="A", size=15, fontface=2, color="black")+
+  theme(axis.line = element_line(colour = "black"), 
+        panel.background = element_blank(),
+        axis.text.x = element_text(size=30, face= "bold", color="black"),
+        axis.text.y = element_text(size=30, face= "bold", color="black"),
+        axis.title.y = element_text(size = 35, face= "bold",color="black"),
+        plot.margin = unit(c(1.6,0.5,0.5,0.5), "cm"))
+
+
+pChryso.dia_epsSterol.phytol <- ggplot()+
+  geom_smooth(data=ChrysoDia_eps_lipid12,aes(x=sum_ChrysoDia,y=epsilon_sterol_phytol), xseq = c(-5, 105),method="lm", linetype="dashed", color="goldenrod", fill="goldenrod1", alpha=0.1)+
+  geom_point(data=ChrysoDia_eps_lipid12,aes(x=sum_ChrysoDia,y=epsilon_sterol_phytol), size=7, shape=1, color="goldenrod2", stroke=2)+
+  geom_errorbar(data= eps_lipid1.2_cultures_mean_sd_dia, aes(x=100, ymin = mean_epsilon_sterol.phytol - sd_epsilon_sterol.phytol, 
+                                                             ymax = mean_epsilon_sterol.phytol + sd_epsilon_sterol.phytol), color="gray56", width=5)+
+  geom_point(data=eps_lipid1.2_cultures_mean_sd_dia,aes(x=100,y= mean_epsilon_sterol.phytol), size=7, shape=5, color="gray56", stroke=2)+
+  annotate("text",x=-25,y=380,label="B", size=15, fontface=2, color="black")+
+  xlab(NULL)+ylab(expression(epsilon^{2}*""['sterol/phytol']~("\u2030")))+ 
+  coord_cartesian(xlim=c(0,100), ylim=c(30,350), clip="off")+
+  scale_y_continuous(breaks=c(50,150,250,350))+
+  annotate("text",y= 355, x= 17.5, label=expression(bold(R^2~"= 0.24"~"**")), size=12, fontface=1, color="goldenrod")+
+  annotate("text",y= 45, x= 7.5,label=expression("n = 31"), size=10.5, color="goldenrod")+
+  theme(axis.line = element_line(colour = "black"), 
+        panel.background = element_blank(),
+        axis.text.x = element_text(size=30, face= "bold", color="black"),
+        axis.text.y = element_text(size=30, face= "bold", color="black"),
+        axis.title.y = element_text(size = 35, face= "bold",color="black"),
+        plot.margin = unit(c(1.6,0.5,0.5,0.5), "cm"))
+
+
+pchryso.dia_epsilon <- plot_grid(pChryso.dia_epsC16.sterol , pChryso.dia_epsSterol.phytol,
+                                 ncol = 2, align = "h", rel_widths=c(1,1))
+
+x.grob1 <- textGrob(expression(~~~~~~~~~~~~~~~~~~~sum(italic("Bacillario-, Chrysophyceae")~"(% eukaryotic algal biovolume)")), 
+                    gp=gpar(col="black",  fontsize=30)) #fontsize=25 ~~~~~~~~~~~~~~~~~~~
+
+
+```
+
+## Fig. 5
+
+```{r, fig.width = 17.5, fig.height = 7.5 , echo=FALSE}
+
+grid.arrange(arrangeGrob(pchryso.dia_epsilon, bottom = x.grob1))
+
+```
+
+

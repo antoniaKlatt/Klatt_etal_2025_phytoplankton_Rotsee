@@ -1,0 +1,1956 @@
+---
+title: "06_seasonal&annual_modeling_epsilon-Lipid1-Lipid2"
+author: "Antonia_Klatt"
+date: "2024-08-01"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+#loading packages
+
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(cowplot)
+
+Sys.setlocale("LC_ALL", "English")
+
+#import data (this study)
+
+## seasonal and yearly epsilon lipid1/lipid2 values
+
+Avg.epsilon_lipid1.2 <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\weighted_avg_epsilon_lipid1_lipid2_ROT19.csv",
+                                  header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+## seasonal and yearly phytoplankton relative biovolume 
+
+phytoplankton_Avg.rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\weighted_avg_phytoplankton_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+## seasonal and yearly phytoplankton & microzooplankton relative biovolume 
+
+phyto.microplankton_Avg.rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\weighted_avg_phyto_microplankton_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+## seasonal and yearly eukaryotic algae relative biovolume 
+
+eukary.algae_Avg.rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\weighted_avg_eukaryotic_algae_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+## seasonal and yearly eukaryotic algae & microzooplankton relative biovolume 
+
+eukary.algae.microplankton_Avg.rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\weighted_avg_eukaryotic_algae_microplankton_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+## seasonal and yearly d2H water values
+
+Avg.d2H.water <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\avg_d2H_H2O_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+
+#import data (reference data)
+
+## alpha lipid/water values algal culturing studies (Ladd et al., 2024) [https://doi.org/10.5061/dryad.nvx0k6f0v]
+
+alpha_lipid_cultures <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\alpha_lipid_water_algae_cultures_Ladd_etal_2024.csv",
+                                  header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+
+## d2H C16:0 values from seston and zooplankton (Pilecky et al., 2022) [https://doi.org/10.1111/1365-2435.13981]
+
+d2H_C16.0_seston_zoo <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\d2H_C16.0_FieldStudy_Pilecky_etal_2022.csv",
+                                  header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+
+#transforming datasets for calculations
+
+## transform biovolume percentage data to decimals (division by 100)
+
+phyto_Avg.rel.bioVol.dec <- phytoplankton_Avg.rel.bioVol[,2:7]/100
+
+phyto.micro_Avg.rel.bioVol.dec <- phyto.microplankton_Avg.rel.bioVol[,2:10]/100
+
+eukary.algae_Avg.rel.bioVol.dec <- eukary.algae_Avg.rel.bioVol[,2:6]/100
+
+eukary.algae.micro_Avg.rel.bioVol.dec <- eukary.algae.microplankton_Avg.rel.bioVol[,2:9]/100
+
+## conversion of d2H water values to R water values
+
+Avg.R.water <- as.data.frame((Avg.d2H.water[,2:2]/1000)+1)
+
+```
+
+## Monte Carlo simulation of alpha lipid/water values for each lipid and phytoplankton group
+
+```{r}
+
+#assuming a normal distribution (N) with mean and SD of alpha lipid/water values from algal cultures (Ladd et al., 2024) (n= 50,000)
+
+## no set.seed function was set for rnorm() to avoid any influence of the set.seed number on the results- 
+##instead, n in rnorm() was set to 50,000 to have a high enough sampling number to gain consistent mean values according to the central limit theorem
+
+#N(alpha C16:0-water) 
+
+## cyanobacteria 
+
+mean_alpha_C16_water_cyano <- alpha_lipid_cultures[1:1,2:2]
+sd_alpha_C16_water_cyano <- alpha_lipid_cultures[1:1,3:3]
+
+
+norm_cyano_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_cyano , sd= sd_alpha_C16_water_cyano)
+norm_cyano_alpha_C16_water.df <- as.data.frame(norm_cyano_alpha_C16_water)
+
+## green algae (GA)
+
+mean_alpha_C16_water_GA <- alpha_lipid_cultures[2:2,2:2]
+sd_alpha_C16_water_GA <- alpha_lipid_cultures[2:2,3:3]
+
+
+norm_GA_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_GA , sd= sd_alpha_C16_water_GA)
+norm_GA_alpha_C16_water.df <- as.data.frame(norm_GA_alpha_C16_water)
+
+## Diatoms
+
+mean_alpha_C16_water_dia <- alpha_lipid_cultures[3:3,2:2]
+sd_alpha_C16_water_dia <- alpha_lipid_cultures[3:3,3:3]
+
+
+norm_dia_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_dia , sd= sd_alpha_C16_water_dia)
+norm_dia_alpha_C16_water.df <- as.data.frame(norm_dia_alpha_C16_water)
+
+## Dinoflagellates
+
+mean_alpha_C16_water_dino <- alpha_lipid_cultures[4:4,2:2]
+sd_alpha_C16_water_dino <- alpha_lipid_cultures[4:4,3:3]
+
+
+norm_dino_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_dino , sd= sd_alpha_C16_water_dino)
+norm_dino_alpha_C16_water.df <- as.data.frame(norm_dino_alpha_C16_water)
+
+## Chrysophyta <- based on mean and SD of d2H C16:0 values of diatoms and dinoflagellates 
+
+mean_alpha_C16_water_chryso <- alpha_lipid_cultures[5:5,2:2]
+sd_alpha_C16_water_chryso <- alpha_lipid_cultures[5:5,3:3]
+
+
+norm_chryso_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_chryso , sd= sd_alpha_C16_water_chryso)
+norm_chryso_alpha_C16_water.df <- as.data.frame(norm_chryso_alpha_C16_water)
+
+## Cryptomonads
+
+mean_alpha_C16_water_crypto <- alpha_lipid_cultures[6:6,2:2]
+sd_alpha_C16_water_crypto <- alpha_lipid_cultures[6:6,3:3]
+
+
+norm_crypto_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_crypto , sd= sd_alpha_C16_water_crypto)
+norm_crypto_alpha_C16_water.df <- as.data.frame(norm_crypto_alpha_C16_water)
+
+
+#N(alpha phytol-water)
+
+## cyanobacteria 
+
+mean_alpha_phytol_water_cyano <- alpha_lipid_cultures[1:1,4:4]
+sd_alpha_phytol_water_cyano <- alpha_lipid_cultures[1:1,5:5]
+
+
+norm_cyano_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_cyano , sd= sd_alpha_phytol_water_cyano)
+norm_cyano_alpha_phytol_water.df <- as.data.frame(norm_cyano_alpha_phytol_water)
+
+## green algae (GA)
+
+mean_alpha_phytol_water_GA <- alpha_lipid_cultures[2:2,4:4]
+sd_alpha_phytol_water_GA <- alpha_lipid_cultures[2:2,5:5]
+
+
+norm_GA_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_GA , sd= sd_alpha_phytol_water_GA)
+norm_GA_alpha_phytol_water.df <- as.data.frame(norm_GA_alpha_phytol_water)
+
+## Diatoms
+
+mean_alpha_phytol_water_dia <- alpha_lipid_cultures[3:3,4:4]
+sd_alpha_phytol_water_dia <- alpha_lipid_cultures[3:3,5:5]
+
+
+norm_dia_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_dia , sd= sd_alpha_phytol_water_dia)
+norm_dia_alpha_phytol_water.df <- as.data.frame(norm_dia_alpha_phytol_water)
+
+## Dinoflagellates
+
+mean_alpha_phytol_water_dino <- alpha_lipid_cultures[4:4,4:4]
+sd_alpha_phytol_water_dino <- alpha_lipid_cultures[4:4,5:5]
+
+
+norm_dino_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_dino , sd= sd_alpha_phytol_water_dino)
+norm_dino_alpha_phytol_water.df <- as.data.frame(norm_dino_alpha_phytol_water)
+
+## Chrysophyta <- based on mean and SD of d2H phytol values of diatoms and dinoflagellates
+
+mean_alpha_phytol_water_chryso <- alpha_lipid_cultures[5:5,4:4]
+sd_alpha_phytol_water_chryso <- alpha_lipid_cultures[5:5,5:5]
+
+
+norm_chryso_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_chryso , sd= sd_alpha_phytol_water_chryso)
+norm_chryso_alpha_phytol_water.df <- as.data.frame(norm_chryso_alpha_phytol_water)
+
+## Cryptomonads
+
+mean_alpha_phytol_water_crypto <- alpha_lipid_cultures[6:6,4:4]
+sd_alpha_phytol_water_crypto <- alpha_lipid_cultures[6:6,5:5]
+
+
+norm_crypto_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_crypto , sd= sd_alpha_phytol_water_crypto)
+norm_crypto_alpha_phytol_water.df <- as.data.frame(norm_crypto_alpha_phytol_water)
+
+
+#N(alpha sterol-water)
+
+## cyanobacteria #NA #no sterols
+
+## green algae (GA)
+
+mean_alpha_sterol_water_GA <- alpha_lipid_cultures[2:2,6:6]
+sd_alpha_sterol_water_GA <- alpha_lipid_cultures[2:2,7:7]
+
+norm_GA_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_GA , sd= sd_alpha_sterol_water_GA)
+norm_GA_alpha_sterol_water.df <- as.data.frame(norm_GA_alpha_sterol_water)
+
+## Diatoms
+
+mean_alpha_sterol_water_dia <- alpha_lipid_cultures[3:3,6:6]
+sd_alpha_sterol_water_dia <- alpha_lipid_cultures[3:3,7:7]
+
+
+norm_dia_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_dia , sd= sd_alpha_sterol_water_dia)
+norm_dia_alpha_sterol_water.df <- as.data.frame(norm_dia_alpha_sterol_water)
+
+## Dinoflagellates
+
+mean_alpha_sterol_water_dino <- alpha_lipid_cultures[4:4,6:6]
+sd_alpha_sterol_water_dino <- alpha_lipid_cultures[4:4,7:7]
+
+
+norm_dino_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_dino , sd= sd_alpha_sterol_water_dino)
+norm_dino_alpha_sterol_water.df <- as.data.frame(norm_dino_alpha_sterol_water)
+
+## Chrysophyta <- based on mean and SD of d2H sterol values of diatoms and dinoflagellates  
+
+mean_alpha_sterol_water_chryso <- alpha_lipid_cultures[5:5,6:6]
+sd_alpha_sterol_water_chryso <- alpha_lipid_cultures[5:5,7:7]
+
+norm_chryso_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_chryso , sd= sd_alpha_sterol_water_chryso)
+norm_chryso_alpha_sterol_water.df <- as.data.frame(norm_chryso_alpha_sterol_water)
+
+## Cryptomonads
+
+mean_alpha_sterol_water_crypto <- alpha_lipid_cultures[6:6,6:6]
+sd_alpha_sterol_water_crypto <- alpha_lipid_cultures[6:6,7:7]
+
+norm_crypto_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_crypto , sd= sd_alpha_sterol_water_crypto)
+norm_crypto_alpha_sterol_water.df <- as.data.frame(norm_crypto_alpha_sterol_water)
+
+```
+
+## modeling of seasonal and annual biovolume-weighted 2H/1H (R) lipid values considering algal biovolume only
+
+### calculating 2H/1H (R) lipid values for each algal group by R lipid = alpha lipid/water * R water, based on R water values in Rotsee, then multiply with relative biovolume
+
+#### first: R lipid algal group= alpha lipid/water x R water
+#### second: R lipid phyto=  R lipid algal group x bioVol 
+
+```{r}
+
+# modeling R C16:0 values
+
+## weighting N(R C16:0) of each algal group by the respective seasonal and yearly algal biovolume 
+
+### year 2019-2020
+
+phyto_bio_year <- phyto_Avg.rel.bioVol.dec[6:6,]
+
+R_water_year <- Avg.R.water[6:6,]
+
+
+R_C16_phyto_year <- as.data.frame(((norm_cyano_alpha_C16_water.df*R_water_year)*phyto_bio_year$cyanobacteria_relBio)+
+                                    ((norm_GA_alpha_C16_water.df*R_water_year)*phyto_bio_year$green.algae_relBio)+
+                                    ((norm_chryso_alpha_C16_water.df*R_water_year)*phyto_bio_year$Chrysophyta_relBio)+
+                                    ((norm_dia_alpha_C16_water.df*R_water_year)*phyto_bio_year$Diatoms_relBio)+
+                                    ((norm_dino_alpha_C16_water.df*R_water_year)*phyto_bio_year$Dinoflagellates_relBio)+
+                                    ((norm_crypto_alpha_C16_water.df*R_water_year)*phyto_bio_year$Cryptophyceae_relBio))
+
+
+### winter 2019
+
+phyto_bio_winter2019 <- phyto_Avg.rel.bioVol.dec[1:1,]
+
+R_water_winter2019 <- Avg.R.water[1:1,]
+
+R_C16_phyto_winter2019 <- as.data.frame(((norm_cyano_alpha_C16_water.df*R_water_winter2019)*phyto_bio_winter2019$cyanobacteria_relBio)+
+                                          ((norm_GA_alpha_C16_water.df*R_water_winter2019)*phyto_bio_winter2019$green.algae_relBio)+
+                                          ((norm_chryso_alpha_C16_water.df*R_water_winter2019)*phyto_bio_winter2019$Chrysophyta_relBio)+
+                                          ((norm_dia_alpha_C16_water.df*R_water_winter2019)*phyto_bio_winter2019$Diatoms_relBio)+
+                                          ((norm_dino_alpha_C16_water.df*R_water_winter2019)*phyto_bio_winter2019$Dinoflagellates_relBio)+
+                                          ((norm_crypto_alpha_C16_water.df*R_water_winter2019)*phyto_bio_winter2019$Cryptophyceae_relBio))
+
+
+### spring 2019
+
+phyto_bio_spring2019 <- phyto_Avg.rel.bioVol.dec[2:2,]
+
+R_water_spring2019 <- Avg.R.water[2:2,]
+
+R_C16_phyto_spring2019 <- as.data.frame(((norm_cyano_alpha_C16_water.df*R_water_spring2019)*phyto_bio_spring2019$cyanobacteria_relBio)+
+                                          ((norm_GA_alpha_C16_water.df*R_water_spring2019)*phyto_bio_spring2019$green.algae_relBio)+
+                                          ((norm_chryso_alpha_C16_water.df*R_water_spring2019)*phyto_bio_spring2019$Chrysophyta_relBio)+
+                                          ((norm_dia_alpha_C16_water.df*R_water_spring2019)*phyto_bio_spring2019$Diatoms_relBio)+
+                                          ((norm_dino_alpha_C16_water.df*R_water_spring2019)*phyto_bio_spring2019$Dinoflagellates_relBio)+
+                                          ((norm_crypto_alpha_C16_water.df*R_water_spring2019)*phyto_bio_spring2019$Cryptophyceae_relBio))
+
+
+### summer 2019
+
+phyto_bio_summer2019 <- phyto_Avg.rel.bioVol.dec[3:3,]
+
+R_water_summer2019 <- Avg.R.water[3:3,]
+
+R_C16_phyto_summer2019 <- as.data.frame(((norm_cyano_alpha_C16_water.df*R_water_summer2019)*phyto_bio_summer2019$cyanobacteria_relBio)+
+                                          ((norm_GA_alpha_C16_water.df*R_water_summer2019)*phyto_bio_summer2019$green.algae_relBio)+
+                                          ((norm_chryso_alpha_C16_water.df*R_water_summer2019)*phyto_bio_summer2019$Chrysophyta_relBio)+
+                                          ((norm_dia_alpha_C16_water.df*R_water_summer2019)*phyto_bio_summer2019$Diatoms_relBio)+
+                                          ((norm_dino_alpha_C16_water.df*R_water_summer2019)*phyto_bio_summer2019$Dinoflagellates_relBio)+
+                                          ((norm_crypto_alpha_C16_water.df*R_water_summer2019)*phyto_bio_summer2019$Cryptophyceae_relBio))
+
+
+### autumn 2019
+
+phyto_bio_autumn2019 <- phyto_Avg.rel.bioVol.dec[4:4,]
+
+R_water_autumn2019 <- Avg.R.water[4:4,]
+
+R_C16_phyto_autumn2019 <- as.data.frame(((norm_cyano_alpha_C16_water.df*R_water_autumn2019)*phyto_bio_autumn2019$cyanobacteria_relBio)+
+                                          ((norm_GA_alpha_C16_water.df*R_water_autumn2019)*phyto_bio_autumn2019$green.algae_relBio)+
+                                          ((norm_chryso_alpha_C16_water.df*R_water_autumn2019)*phyto_bio_autumn2019$Chrysophyta_relBio)+
+                                          ((norm_dia_alpha_C16_water.df*R_water_autumn2019)*phyto_bio_autumn2019$Diatoms_relBio)+
+                                          ((norm_dino_alpha_C16_water.df*R_water_autumn2019)*phyto_bio_autumn2019$Dinoflagellates_relBio)+
+                                          ((norm_crypto_alpha_C16_water.df*R_water_autumn2019)*phyto_bio_autumn2019$Cryptophyceae_relBio))
+
+
+### winter 2019-2020
+
+phyto_bio_winter2020 <- phyto_Avg.rel.bioVol.dec[5:5,]
+
+R_water_winter2020 <- Avg.R.water[5:5,]
+
+R_C16_phyto_winter2020 <- as.data.frame(((norm_cyano_alpha_C16_water.df*R_water_winter2020)*phyto_bio_winter2020$cyanobacteria_relBio)+
+                                          ((norm_GA_alpha_C16_water.df*R_water_winter2020)*phyto_bio_winter2020$green.algae_relBio)+
+                                          ((norm_chryso_alpha_C16_water.df*R_water_winter2020)*phyto_bio_winter2020$Chrysophyta_relBio)+
+                                          ((norm_dia_alpha_C16_water.df*R_water_winter2020)*phyto_bio_winter2020$Diatoms_relBio)+
+                                          ((norm_dino_alpha_C16_water.df*R_water_winter2020)*phyto_bio_winter2020$Dinoflagellates_relBio)+
+                                          ((norm_crypto_alpha_C16_water.df*R_water_winter2020)*phyto_bio_winter2020$Cryptophyceae_relBio))
+
+## modeling R phytol values
+
+## weighting N(R phytol) of each algal group by the respective seasonal and yearly algal biovolume 
+
+### year 2019-2020
+
+R_phytol_year <- as.data.frame(((norm_cyano_alpha_phytol_water.df*R_water_year)*phyto_bio_year$cyanobacteria_relBio)+
+                                 ((norm_GA_alpha_phytol_water.df*R_water_year)*phyto_bio_year$green.algae_relBio)+
+                                 ((norm_chryso_alpha_phytol_water.df*R_water_year)*phyto_bio_year$Chrysophyta_relBio)+
+                                 ((norm_dia_alpha_phytol_water.df*R_water_year)*phyto_bio_year$Diatoms_relBio)+
+                                 ((norm_dino_alpha_phytol_water.df*R_water_year)*phyto_bio_year$Dinoflagellates_relBio)+
+                                 ((norm_crypto_alpha_phytol_water.df*R_water_year)*phyto_bio_year$Cryptophyceae_relBio))
+
+
+### winter 2019
+
+R_phytol_winter2019 <- as.data.frame(((norm_cyano_alpha_phytol_water.df*R_water_winter2019)*phyto_bio_winter2019$cyanobacteria_relBio)+
+                                       ((norm_GA_alpha_phytol_water.df*R_water_winter2019)*phyto_bio_winter2019$green.algae_relBio)+
+                                       ((norm_chryso_alpha_phytol_water.df*R_water_winter2019)*phyto_bio_winter2019$Chrysophyta_relBio)+
+                                       ((norm_dia_alpha_phytol_water.df*R_water_winter2019)*phyto_bio_winter2019$Diatoms_relBio)+
+                                       ((norm_dino_alpha_phytol_water.df*R_water_winter2019)*phyto_bio_winter2019$Dinoflagellates_relBio)+
+                                       ((norm_crypto_alpha_phytol_water.df*R_water_winter2019)*phyto_bio_winter2019$Cryptophyceae_relBio))
+
+
+### spring 2019
+
+
+R_phytol_spring2019 <- as.data.frame(((norm_cyano_alpha_phytol_water.df*R_water_spring2019)*phyto_bio_spring2019$cyanobacteria_relBio)+
+                                       ((norm_GA_alpha_phytol_water.df*R_water_spring2019)*phyto_bio_spring2019$green.algae_relBio)+
+                                       ((norm_chryso_alpha_phytol_water.df*R_water_spring2019)*phyto_bio_spring2019$Chrysophyta_relBio)+
+                                       ((norm_dia_alpha_phytol_water.df*R_water_spring2019)*phyto_bio_spring2019$Diatoms_relBio)+
+                                       ((norm_dino_alpha_phytol_water.df*R_water_spring2019)*phyto_bio_spring2019$Dinoflagellates_relBio)+
+                                       ((norm_crypto_alpha_phytol_water.df*R_water_spring2019)*phyto_bio_spring2019$Cryptophyceae_relBio))
+
+
+### summer 2019
+
+
+R_phytol_summer2019 <- as.data.frame(((norm_cyano_alpha_phytol_water.df*R_water_summer2019)*phyto_bio_summer2019$cyanobacteria_relBio)+
+                                       ((norm_GA_alpha_phytol_water.df*R_water_summer2019)*phyto_bio_summer2019$green.algae_relBio)+
+                                       ((norm_chryso_alpha_phytol_water.df*R_water_summer2019)*phyto_bio_summer2019$Chrysophyta_relBio)+
+                                       ((norm_dia_alpha_phytol_water.df*R_water_summer2019)*phyto_bio_summer2019$Diatoms_relBio)+
+                                       ((norm_dino_alpha_phytol_water.df*R_water_summer2019)*phyto_bio_summer2019$Dinoflagellates_relBio)+
+                                       ((norm_crypto_alpha_phytol_water.df*R_water_summer2019)*phyto_bio_summer2019$Cryptophyceae_relBio))
+
+
+### autumn 2019
+
+
+R_phytol_autumn2019 <- as.data.frame(((norm_cyano_alpha_phytol_water.df*R_water_autumn2019)*phyto_bio_autumn2019$cyanobacteria_relBio)+
+                                       ((norm_GA_alpha_phytol_water.df*R_water_autumn2019)*phyto_bio_autumn2019$green.algae_relBio)+
+                                       ((norm_chryso_alpha_phytol_water.df*R_water_autumn2019)*phyto_bio_autumn2019$Chrysophyta_relBio)+
+                                       ((norm_dia_alpha_phytol_water.df*R_water_autumn2019)*phyto_bio_autumn2019$Diatoms_relBio)+
+                                       ((norm_dino_alpha_phytol_water.df*R_water_autumn2019)*phyto_bio_autumn2019$Dinoflagellates_relBio)+
+                                       ((norm_crypto_alpha_phytol_water.df*R_water_autumn2019)*phyto_bio_autumn2019$Cryptophyceae_relBio))
+
+
+### winter 2019-2020
+
+
+R_phytol_winter2020 <- as.data.frame(((norm_cyano_alpha_phytol_water.df*R_water_winter2020)*phyto_bio_winter2020$cyanobacteria_relBio)+
+                                       ((norm_GA_alpha_phytol_water.df*R_water_winter2020)*phyto_bio_winter2020$green.algae_relBio)+
+                                       ((norm_chryso_alpha_phytol_water.df*R_water_winter2020)*phyto_bio_winter2020$Chrysophyta_relBio)+
+                                       ((norm_dia_alpha_phytol_water.df*R_water_winter2020)*phyto_bio_winter2020$Diatoms_relBio)+
+                                       ((norm_dino_alpha_phytol_water.df*R_water_winter2020)*phyto_bio_winter2020$Dinoflagellates_relBio)+
+                                       ((norm_crypto_alpha_phytol_water.df*R_water_winter2020)*phyto_bio_winter2020$Cryptophyceae_relBio))
+
+
+# modeling R sterol values
+
+## weighting N(R sterol) of each eukaryotic algal group by the respective seasonal and yearly eukaryotic algal biovolume 
+
+### year 2019-2020
+
+eukary_bio_year <- eukary.algae_Avg.rel.bioVol.dec[6:6,]
+
+
+R_sterol_eukary_year <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water_year)*eukary_bio_year$green.algae_relBio)+
+                                        ((norm_chryso_alpha_sterol_water.df*R_water_year)*eukary_bio_year$Chrysophyta_relBio)+
+                                        ((norm_dia_alpha_sterol_water.df*R_water_year)*eukary_bio_year$Diatoms_relBio)+
+                                        ((norm_dino_alpha_sterol_water.df*R_water_year)*eukary_bio_year$Dinoflagellates_relBio)+
+                                        ((norm_crypto_alpha_sterol_water.df*R_water_year)*eukary_bio_year$Cryptophyceae_relBio))
+
+### winter 2019
+
+eukary_bio_winter2019 <-eukary.algae_Avg.rel.bioVol.dec[1:1,]
+
+
+R_sterol_eukary_winter2019 <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water_winter2019)*eukary_bio_winter2019$green.algae_relBio)+
+                                              ((norm_chryso_alpha_sterol_water.df*R_water_winter2019)*eukary_bio_winter2019$Chrysophyta_relBio)+
+                                              ((norm_dia_alpha_sterol_water.df*R_water_winter2019)*eukary_bio_winter2019$Diatoms_relBio)+
+                                              ((norm_dino_alpha_sterol_water.df*R_water_winter2019)*eukary_bio_winter2019$Dinoflagellates_relBio)+
+                                              ((norm_crypto_alpha_sterol_water.df*R_water_winter2019)*eukary_bio_winter2019$Cryptophyceae_relBio))
+
+### spring 2019
+
+eukary_bio_spring2019 <- eukary.algae_Avg.rel.bioVol.dec[2:2,]
+
+
+R_sterol_eukary_spring2019 <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water_spring2019)*eukary_bio_spring2019$green.algae_relBio)+
+                                              ((norm_chryso_alpha_sterol_water.df*R_water_spring2019)*eukary_bio_spring2019$Chrysophyta_relBio)+
+                                              ((norm_dia_alpha_sterol_water.df*R_water_spring2019)*eukary_bio_spring2019$Diatoms_relBio)+
+                                              ((norm_dino_alpha_sterol_water.df*R_water_spring2019)*eukary_bio_spring2019$Dinoflagellates_relBio)+
+                                              ((norm_crypto_alpha_sterol_water.df*R_water_spring2019)*eukary_bio_spring2019$Cryptophyceae_relBio))
+
+
+### summer 2019
+
+eukary_bio_summer2019 <- eukary.algae_Avg.rel.bioVol.dec[3:3,]
+
+
+R_sterol_eukary_summer2019 <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water_summer2019)*eukary_bio_summer2019$green.algae_relBio)+
+                                              ((norm_chryso_alpha_sterol_water.df*R_water_summer2019)*eukary_bio_summer2019$Chrysophyta_relBio)+
+                                              ((norm_dia_alpha_sterol_water.df*R_water_summer2019)*eukary_bio_summer2019$Diatoms_relBio)+
+                                              ((norm_dino_alpha_sterol_water.df*R_water_summer2019)*eukary_bio_summer2019$Dinoflagellates_relBio)+
+                                              ((norm_crypto_alpha_sterol_water.df*R_water_summer2019)*eukary_bio_summer2019$Cryptophyceae_relBio))
+
+
+### autumn 2019
+
+eukary_bio_autumn2019 <-  eukary.algae_Avg.rel.bioVol.dec[4:4,]
+
+
+R_sterol_eukary_autumn2019 <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water_autumn2019)*eukary_bio_autumn2019$green.algae_relBio)+
+                                              ((norm_chryso_alpha_sterol_water.df*R_water_autumn2019)*eukary_bio_autumn2019$Chrysophyta_relBio)+
+                                              ((norm_dia_alpha_sterol_water.df*R_water_autumn2019)*eukary_bio_autumn2019$Diatoms_relBio)+
+                                              ((norm_dino_alpha_sterol_water.df*R_water_autumn2019)*eukary_bio_autumn2019$Dinoflagellates_relBio)+
+                                              ((norm_crypto_alpha_sterol_water.df*R_water_autumn2019)*eukary_bio_autumn2019$Cryptophyceae_relBio))
+
+
+### winter 2019-2020
+
+eukary_bio_winter2020 <-  eukary.algae_Avg.rel.bioVol.dec[5:5,]
+
+
+R_sterol_eukary_winter2020 <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water_winter2020)*eukary_bio_winter2020$green.algae_relBio)+
+                                              ((norm_chryso_alpha_sterol_water.df*R_water_winter2020)*eukary_bio_winter2020$Chrysophyta_relBio)+
+                                              ((norm_dia_alpha_sterol_water.df*R_water_winter2020)*eukary_bio_winter2020$Diatoms_relBio)+
+                                              ((norm_dino_alpha_sterol_water.df*R_water_winter2020)*eukary_bio_winter2020$Dinoflagellates_relBio)+
+                                              ((norm_crypto_alpha_sterol_water.df*R_water_winter2020)*eukary_bio_winter2020$Cryptophyceae_relBio))
+
+```
+
+## calculation of epsilon lipid1/lipid2 values including only algal 2H/1H (R) lipid values (epsilon lipid1/lipid2 phyto)
+
+```{r}
+# epsilon C16:0/phytol 
+
+## year 2019-2020
+
+epsilon_C16_phytol_phyto_year <- as.data.frame((((R_C16_phyto_year)/(R_phytol_year))-1)*1000)
+
+colnames(epsilon_C16_phytol_phyto_year) <- c("eps_C16_phytol_phyto_year")
+mean_eps_C16_phytol_phyto_year <- mean(epsilon_C16_phytol_phyto_year$eps_C16_phytol_phyto_year) 
+sd_eps_C16_phytol_phyto_year <- sd(epsilon_C16_phytol_phyto_year$eps_C16_phytol_phyto_year) 
+
+## winter 2019
+
+epsilon_C16_phytol_phyto_winter2019 <- as.data.frame((((R_C16_phyto_winter2019)/(R_phytol_winter2019))-1)*1000)
+
+colnames(epsilon_C16_phytol_phyto_winter2019) <- c("eps_C16_phytol_phyto_winter2019")
+mean_eps_C16_phytol_phyto_winter2019 <- mean(epsilon_C16_phytol_phyto_winter2019$eps_C16_phytol_phyto_winter2019) 
+sd_eps_C16_phytol_phyto_winter2019 <- sd(epsilon_C16_phytol_phyto_winter2019$eps_C16_phytol_phyto_winter2019) 
+
+## spring 2019
+
+epsilon_C16_phytol_phyto_spring2019 <- as.data.frame((((R_C16_phyto_spring2019)/(R_phytol_spring2019))-1)*1000)
+
+colnames(epsilon_C16_phytol_phyto_spring2019) <- c("eps_C16_phytol_phyto_spring2019")
+mean_eps_C16_phytol_phyto_spring2019 <- mean(epsilon_C16_phytol_phyto_spring2019$eps_C16_phytol_phyto_spring2019) 
+sd_eps_C16_phytol_phyto_spring2019 <- sd(epsilon_C16_phytol_phyto_spring2019$eps_C16_phytol_phyto_spring2019) 
+
+
+## summer 2019
+
+epsilon_C16_phytol_phyto_summer2019 <- as.data.frame((((R_C16_phyto_summer2019)/(R_phytol_summer2019))-1)*1000)
+
+colnames(epsilon_C16_phytol_phyto_summer2019) <- c("eps_C16_phytol_phyto_summer2019")
+mean_eps_C16_phytol_phyto_summer2019 <- mean(epsilon_C16_phytol_phyto_summer2019$eps_C16_phytol_phyto_summer2019) 
+sd_eps_C16_phytol_phyto_summer2019 <- sd(epsilon_C16_phytol_phyto_summer2019$eps_C16_phytol_phyto_summer2019) 
+
+
+## autumn 2019
+
+epsilon_C16_phytol_phyto_autumn2019 <- as.data.frame((((R_C16_phyto_autumn2019)/(R_phytol_autumn2019))-1)*1000)
+
+colnames(epsilon_C16_phytol_phyto_autumn2019) <- c("eps_C16_phytol_phyto_autumn2019")
+mean_eps_C16_phytol_phyto_autumn2019 <- mean(epsilon_C16_phytol_phyto_autumn2019$eps_C16_phytol_phyto_autumn2019) 
+sd_eps_C16_phytol_phyto_autumn2019 <- sd(epsilon_C16_phytol_phyto_autumn2019$eps_C16_phytol_phyto_autumn2019) 
+
+
+## winter 2019-2020
+
+epsilon_C16_phytol_phyto_winter2020 <- as.data.frame((((R_C16_phyto_winter2020)/(R_phytol_winter2020))-1)*1000)
+
+colnames(epsilon_C16_phytol_phyto_winter2020) <- c("eps_C16_phytol_phyto_winter2020")
+mean_eps_C16_phytol_phyto_winter2020 <- mean(epsilon_C16_phytol_phyto_winter2020$eps_C16_phytol_phyto_winter2020) 
+sd_eps_C16_phytol_phyto_winter2020 <- sd(epsilon_C16_phytol_phyto_winter2020$eps_C16_phytol_phyto_winter2020) 
+
+
+
+#epsilon C16:0/sterol
+
+## year 2019-2020
+
+epsilon_C16_sterol_phyto_year <- as.data.frame((((R_C16_phyto_year)/(R_sterol_eukary_year))-1)*1000)
+
+colnames(epsilon_C16_sterol_phyto_year) <- c("eps_C16_sterol_phyto_year")
+mean_eps_C16_sterol_phyto_year <- mean(epsilon_C16_sterol_phyto_year$eps_C16_sterol_phyto_year) 
+sd_eps_C16_sterol_phyto_year <- sd(epsilon_C16_sterol_phyto_year$eps_C16_sterol_phyto_year) 
+
+## winter 2019
+
+epsilon_C16_sterol_phyto_winter2019 <- as.data.frame((((R_C16_phyto_winter2019)/(R_sterol_eukary_winter2019))-1)*1000)
+
+colnames(epsilon_C16_sterol_phyto_winter2019) <- c("eps_C16_sterol_phyto_winter2019")
+mean_eps_C16_sterol_phyto_winter2019 <- mean(epsilon_C16_sterol_phyto_winter2019$eps_C16_sterol_phyto_winter2019) 
+sd_eps_C16_sterol_phyto_winter2019 <- sd(epsilon_C16_sterol_phyto_winter2019$eps_C16_sterol_phyto_winter2019) 
+
+
+## spring 2019
+
+epsilon_C16_sterol_phyto_spring2019 <- as.data.frame((((R_C16_phyto_spring2019)/(R_sterol_eukary_spring2019))-1)*1000)
+
+colnames(epsilon_C16_sterol_phyto_spring2019) <- c("eps_C16_sterol_phyto_spring2019")
+mean_eps_C16_sterol_phyto_spring2019 <- mean(epsilon_C16_sterol_phyto_spring2019$eps_C16_sterol_phyto_spring2019) 
+sd_eps_C16_sterol_phyto_spring2019 <- sd(epsilon_C16_sterol_phyto_spring2019$eps_C16_sterol_phyto_spring2019) 
+
+
+## summer 2019
+
+epsilon_C16_sterol_phyto_summer2019 <- as.data.frame((((R_C16_phyto_summer2019)/(R_sterol_eukary_summer2019))-1)*1000)
+
+colnames(epsilon_C16_sterol_phyto_summer2019) <- c("eps_C16_sterol_phyto_summer2019")
+mean_eps_C16_sterol_phyto_summer2019 <- mean(epsilon_C16_sterol_phyto_summer2019$eps_C16_sterol_phyto_summer2019) 
+sd_eps_C16_sterol_phyto_summer2019 <- sd(epsilon_C16_sterol_phyto_summer2019$eps_C16_sterol_phyto_summer2019) 
+
+
+## autumn 2019
+
+epsilon_C16_sterol_phyto_autumn2019 <- as.data.frame((((R_C16_phyto_autumn2019)/(R_sterol_eukary_autumn2019))-1)*1000)
+
+colnames(epsilon_C16_sterol_phyto_autumn2019) <- c("eps_C16_sterol_phyto_autumn2019")
+mean_eps_C16_sterol_phyto_autumn2019 <- mean(epsilon_C16_sterol_phyto_autumn2019$eps_C16_sterol_phyto_autumn2019) 
+sd_eps_C16_sterol_phyto_autumn2019 <- sd(epsilon_C16_sterol_phyto_autumn2019$eps_C16_sterol_phyto_autumn2019) 
+
+
+## winter 2019-2020
+
+epsilon_C16_sterol_phyto_winter2020 <- as.data.frame((((R_C16_phyto_winter2020)/(R_sterol_eukary_winter2020))-1)*1000)
+
+colnames(epsilon_C16_sterol_phyto_winter2020) <- c("eps_C16_sterol_phyto_winter2020")
+mean_eps_C16_sterol_phyto_winter2020 <- mean(epsilon_C16_sterol_phyto_winter2020$eps_C16_sterol_phyto_winter2020) 
+sd_eps_C16_sterol_phyto_winter2020 <- sd(epsilon_C16_sterol_phyto_winter2020$eps_C16_sterol_phyto_winter2020) 
+
+
+
+#epsilon sterol/phytol
+
+## year 2019-2020
+
+epsilon_sterol_phytol_phyto_year <- as.data.frame((((R_sterol_eukary_year)/(R_phytol_year))-1)*1000)
+
+colnames(epsilon_sterol_phytol_phyto_year) <- c("eps_sterol_phytol_phyto_year")
+mean_eps_sterol_phytol_phyto_year <- mean(epsilon_sterol_phytol_phyto_year$eps_sterol_phytol_phyto_year) 
+sd_eps_sterol_phytol_phyto_year <- sd(epsilon_sterol_phytol_phyto_year$eps_sterol_phytol_phyto_year) 
+
+## winter 2019
+
+epsilon_sterol_phytol_phyto_winter2019 <- as.data.frame((((R_sterol_eukary_winter2019)/(R_phytol_winter2019))-1)*1000)
+
+colnames(epsilon_sterol_phytol_phyto_winter2019) <- c("eps_sterol_phytol_phyto_winter2019")
+mean_eps_sterol_phytol_phyto_winter2019 <- mean(epsilon_sterol_phytol_phyto_winter2019$eps_sterol_phytol_phyto_winter2019) 
+sd_eps_sterol_phytol_phyto_winter2019 <- sd(epsilon_sterol_phytol_phyto_winter2019$eps_sterol_phytol_phyto_winter2019)
+
+## spring 2019
+
+epsilon_sterol_phytol_phyto_spring2019 <- as.data.frame((((R_sterol_eukary_spring2019)/(R_phytol_spring2019))-1)*1000)
+
+colnames(epsilon_sterol_phytol_phyto_spring2019) <- c("eps_sterol_phytol_phyto_spring2019")
+mean_eps_sterol_phytol_phyto_spring2019 <- mean(epsilon_sterol_phytol_phyto_spring2019$eps_sterol_phytol_phyto_spring2019) 
+sd_eps_sterol_phytol_phyto_spring2019 <- sd(epsilon_sterol_phytol_phyto_spring2019$eps_sterol_phytol_phyto_spring2019)
+
+## summer 2019
+
+epsilon_sterol_phytol_phyto_summer2019 <- as.data.frame((((R_sterol_eukary_summer2019)/(R_phytol_summer2019))-1)*1000)
+
+colnames(epsilon_sterol_phytol_phyto_summer2019) <- c("eps_sterol_phytol_phyto_summer2019")
+mean_eps_sterol_phytol_phyto_summer2019 <- mean(epsilon_sterol_phytol_phyto_summer2019$eps_sterol_phytol_phyto_summer2019) 
+sd_eps_sterol_phytol_phyto_summer2019 <- sd(epsilon_sterol_phytol_phyto_summer2019$eps_sterol_phytol_phyto_summer2019)
+
+## autumn 2019 
+
+epsilon_sterol_phytol_phyto_autumn2019 <- as.data.frame((((R_sterol_eukary_autumn2019)/(R_phytol_autumn2019))-1)*1000)
+
+colnames(epsilon_sterol_phytol_phyto_autumn2019) <- c("eps_sterol_phytol_phyto_autumn2019")
+mean_eps_sterol_phytol_phyto_autumn2019 <- mean(epsilon_sterol_phytol_phyto_autumn2019$eps_sterol_phytol_phyto_autumn2019) 
+sd_eps_sterol_phytol_phyto_autumn2019 <- sd(epsilon_sterol_phytol_phyto_autumn2019$eps_sterol_phytol_phyto_autumn2019)
+
+#winter 2019-2020
+
+epsilon_sterol_phytol_phyto_winter2020 <- as.data.frame((((R_sterol_eukary_winter2020)/(R_phytol_winter2020))-1)*1000)
+
+colnames(epsilon_sterol_phytol_phyto_winter2020) <- c("eps_sterol_phytol_phyto_winter2020")
+mean_eps_sterol_phytol_phyto_winter2020 <- mean(epsilon_sterol_phytol_phyto_winter2020$eps_sterol_phytol_phyto_winter2020) 
+sd_eps_sterol_phytol_phyto_winter2020 <- sd(epsilon_sterol_phytol_phyto_winter2020$eps_sterol_phytol_phyto_winter2020)
+
+
+# creating data frame including mean and sd of modeled epsilon lipid1/lipid2 autotroph values 
+
+mean_eps_C16_phytol_modeled_phyto <- rbind.data.frame(mean_eps_C16_phytol_phyto_winter2019, 
+                                                      mean_eps_C16_phytol_phyto_spring2019, 
+                                                      mean_eps_C16_phytol_phyto_summer2019, 
+                                                      mean_eps_C16_phytol_phyto_autumn2019, 
+                                                      mean_eps_C16_phytol_phyto_winter2020,
+                                                      mean_eps_C16_phytol_phyto_year)
+
+sd_eps_C16_phytol_modeled_phyto <- rbind.data.frame(sd_eps_C16_phytol_phyto_winter2019, 
+                                                    sd_eps_C16_phytol_phyto_spring2019, 
+                                                    sd_eps_C16_phytol_phyto_summer2019, 
+                                                    sd_eps_C16_phytol_phyto_autumn2019, 
+                                                    sd_eps_C16_phytol_phyto_winter2020,
+                                                    sd_eps_C16_phytol_phyto_year)
+
+mean_eps_C16_sterol_modeled_phyto <- rbind.data.frame(mean_eps_C16_sterol_phyto_winter2019, 
+                                                      mean_eps_C16_sterol_phyto_spring2019, 
+                                                      mean_eps_C16_sterol_phyto_summer2019, 
+                                                      mean_eps_C16_sterol_phyto_autumn2019, 
+                                                      mean_eps_C16_sterol_phyto_winter2020,
+                                                      mean_eps_C16_sterol_phyto_year)
+
+sd_eps_C16_sterol_modeled_phyto <- rbind.data.frame(sd_eps_C16_sterol_phyto_winter2019, 
+                                                    sd_eps_C16_sterol_phyto_spring2019, 
+                                                    sd_eps_C16_sterol_phyto_summer2019, 
+                                                    sd_eps_C16_sterol_phyto_autumn2019, 
+                                                    sd_eps_C16_sterol_phyto_winter2020,
+                                                    sd_eps_C16_sterol_phyto_year)
+
+mean_eps_sterol_phytol_modeled_phyto <- rbind.data.frame(mean_eps_sterol_phytol_phyto_winter2019, 
+                                                         mean_eps_sterol_phytol_phyto_spring2019, 
+                                                         mean_eps_sterol_phytol_phyto_summer2019, 
+                                                         mean_eps_sterol_phytol_phyto_autumn2019, 
+                                                         mean_eps_sterol_phytol_phyto_winter2020,
+                                                         mean_eps_sterol_phytol_phyto_year)
+
+sd_eps_sterol_phytol_modeled_phyto <- rbind.data.frame(sd_eps_sterol_phytol_phyto_winter2019, 
+                                                       sd_eps_sterol_phytol_phyto_spring2019, 
+                                                       sd_eps_sterol_phytol_phyto_summer2019, 
+                                                       sd_eps_sterol_phytol_phyto_autumn2019, 
+                                                       sd_eps_sterol_phytol_phyto_winter2020,
+                                                       sd_eps_sterol_phytol_phyto_year)
+
+Avg.eps_lipid1.2_modeled_phyto <- cbind.data.frame(mean_eps_C16_phytol_modeled_phyto, sd_eps_C16_phytol_modeled_phyto,                                                           mean_eps_C16_sterol_modeled_phyto, sd_eps_C16_sterol_modeled_phyto,
+                                                   mean_eps_sterol_phytol_modeled_phyto, sd_eps_sterol_phytol_modeled_phyto)
+
+colnames(Avg.eps_lipid1.2_modeled_phyto) <- c("mean_eps_C16_phytol_phyto", "sd_eps_C16_phytol_phyto",
+                                              "mean_eps_C16_sterol_phyto", "sd_eps_C16_sterol_phyto",
+                                              "mean_eps_sterol_phytol_phyto", "sd_eps_sterol_phytol_phyto")
+```
+
+## modeling of theoretical microzooplankton 2H/1H (R) C16:0 and sterol values
+
+```{r}
+
+# estimation of hydrogen isotope fractionation factor alpha between C16:0 of seston and zooplankton 
+
+##  alpha = (d2H lipid zoo+1000)/(d2H lipid seston+1000)
+
+# d2H C16:0 values from seston and zooplankton (Pilecky et al., 2022) [https://doi.org/10.1111/1365-2435.13981]
+
+d2H_C16_seston <- d2H_C16.0_seston_zoo[1:109,]
+
+d2H_C16_zoo <- d2H_C16.0_seston_zoo[110:263,]
+
+## Monte Carlo simulation of d2H C16:0 values for seston and zooplankton 
+
+## N(d2H C16:0) with mean and SD of d2H C16:0 values from Pilecky et al., 2022 (n= 10,000)
+
+## seston
+
+mean_d2H_C16_seston <- mean(d2H_C16_seston$d2H) 
+sd_d2H_C16_seston <- sd(d2H_C16_seston$d2H)
+
+norm_d2H_C16_seston <- rnorm(50000, mean= mean_d2H_C16_seston, sd= sd_d2H_C16_seston)
+
+## zooplankton
+
+mean_d2H_C16_zoo <- mean(d2H_C16_zoo$d2H) 
+sd_d2H_C16_zoo <- sd(d2H_C16_zoo$d2H) 
+
+norm_d2H_C16_zoo <- rnorm(50000, mean= mean_d2H_C16_zoo, sd= sd_d2H_C16_zoo)
+
+
+#calculating fractionation factor alpha
+
+fractionation_zoo_seston <- as.data.frame(((norm_d2H_C16_zoo+1000)/(norm_d2H_C16_seston+1000)))
+
+
+#calculation of theoretical microzooplankton 2H/1H (R) C16:0 and sterol values by multiplying algal R lipid values with alpha
+
+#R C16:0 
+
+## year 2019-2020
+
+R_C16_micro_year <- as.data.frame(R_C16_phyto_year*fractionation_zoo_seston)
+
+## winter 2019
+
+R_C16_micro_winter2019 <- as.data.frame(R_C16_phyto_winter2019*fractionation_zoo_seston)
+
+## spring 2019
+
+R_C16_micro_spring2019 <- as.data.frame(R_C16_phyto_spring2019*fractionation_zoo_seston)
+
+## summer 2019
+
+R_C16_micro_summer2019 <- as.data.frame(R_C16_phyto_summer2019*fractionation_zoo_seston)
+
+## autumn 2019
+
+R_C16_micro_autumn2019 <- as.data.frame(R_C16_phyto_autumn2019*fractionation_zoo_seston)
+
+## winter 2019-2020
+
+R_C16_micro_winter2020 <- as.data.frame(R_C16_phyto_winter2020*fractionation_zoo_seston)
+
+
+#R sterol
+
+## year 2019-2020
+
+R_sterol_micro_year <- as.data.frame(R_sterol_eukary_year*fractionation_zoo_seston)
+
+## winter 2019
+
+R_sterol_micro_winter2019 <- as.data.frame(R_sterol_eukary_winter2019*fractionation_zoo_seston)
+
+## spring 2019
+
+R_sterol_micro_spring2019 <- as.data.frame(R_sterol_eukary_spring2019*fractionation_zoo_seston)
+
+## summer 2019
+
+R_sterol_micro_summer2019 <- as.data.frame(R_sterol_eukary_summer2019*fractionation_zoo_seston)
+
+## autumn 2019
+
+R_sterol_micro_autumn2019 <- as.data.frame(R_sterol_eukary_autumn2019*fractionation_zoo_seston)
+
+## winter 2019-2020
+
+R_sterol_micro_winter2020 <- as.data.frame(R_sterol_eukary_winter2020*fractionation_zoo_seston)
+
+```
+
+##  modeling of seasonal and annual biovolume-weighted 2H/1H (R) lipid values considering algal and microzooplankton biovolume 
+
+### calculating 2H/1H (R) lipid values for each group by R lipid = alpha lipid/water * R water, based on R water values in Rotsee, then multiply with relative biovolume
+
+#### first: R lipid group= alpha lipid/water x R water
+#### second: R lipid phyto&zoo=  R lipid group x bioVol 
+
+
+```{r}
+# modeling R C16:0 values
+
+### year 2019-2020
+
+bio_mix_year <- phyto.micro_Avg.rel.bioVol.dec[6:6,]
+
+
+R_C16_mix_year <- as.data.frame(((norm_cyano_alpha_C16_water.df*R_water_year)*bio_mix_year$cyanobacteria_relBio)+
+                                  ((norm_GA_alpha_C16_water.df*R_water_year)*bio_mix_year$green.algae_relBio)+
+                                  ((norm_chryso_alpha_C16_water.df*R_water_year)*bio_mix_year$Chrysophyta_relBio)+
+                                  ((norm_dia_alpha_C16_water.df*R_water_year)*bio_mix_year$Diatoms_relBio)+
+                                  ((norm_dino_alpha_C16_water.df*R_water_year)*bio_mix_year$Dinoflagellates_relBio)+
+                                  ((norm_crypto_alpha_C16_water.df*R_water_year)*bio_mix_year$Cryptophyceae_relBio)+
+                                  (R_C16_micro_year*bio_mix_year$Gymnodinium_helveticum_relBio)+
+                                  (R_C16_micro_year*bio_mix_year$Ciliata_relBio)+
+                                  (R_C16_micro_year*bio_mix_year$Rotifera_relBio))
+
+
+### winter 2019
+
+bio_mix_winter2019 <- phyto.micro_Avg.rel.bioVol.dec[1:1,]
+
+
+R_C16_mix_winter2019 <- as.data.frame(((norm_cyano_alpha_C16_water.df*R_water_winter2019)*bio_mix_winter2019$cyanobacteria_relBio)+
+                                        ((norm_GA_alpha_C16_water.df*R_water_winter2019)*bio_mix_winter2019$green.algae_relBio)+
+                                        ((norm_chryso_alpha_C16_water.df*R_water_winter2019)*bio_mix_winter2019$Chrysophyta_relBio)+
+                                        ((norm_dia_alpha_C16_water.df*R_water_winter2019)*bio_mix_winter2019$Diatoms_relBio)+
+                                        ((norm_dino_alpha_C16_water.df*R_water_winter2019)*bio_mix_winter2019$Dinoflagellates_relBio)+
+                                        ((norm_crypto_alpha_C16_water.df*R_water_winter2019)*bio_mix_winter2019$Cryptophyceae_relBio)+
+                                        (R_C16_micro_winter2019*bio_mix_winter2019$Gymnodinium_helveticum_relBio)+
+                                        (R_C16_micro_winter2019*bio_mix_winter2019$Ciliata_relBio)+
+                                        (R_C16_micro_winter2019*bio_mix_winter2019$Rotifera_relBio))
+
+
+### spring 2019
+
+bio_mix_spring2019 <- phyto.micro_Avg.rel.bioVol.dec[2:2,]
+
+
+R_C16_mix_spring2019 <- as.data.frame(((norm_cyano_alpha_C16_water.df*R_water_spring2019)*bio_mix_spring2019$cyanobacteria_relBio)+
+                                        ((norm_GA_alpha_C16_water.df*R_water_spring2019)*bio_mix_spring2019$green.algae_relBio)+
+                                        ((norm_chryso_alpha_C16_water.df*R_water_spring2019)*bio_mix_spring2019$Chrysophyta_relBio)+
+                                        ((norm_dia_alpha_C16_water.df*R_water_spring2019)*bio_mix_spring2019$Diatoms_relBio)+
+                                        ((norm_dino_alpha_C16_water.df*R_water_spring2019)*bio_mix_spring2019$Dinoflagellates_relBio)+
+                                        ((norm_crypto_alpha_C16_water.df*R_water_spring2019)*bio_mix_spring2019$Cryptophyceae_relBio)+
+                                        (R_C16_micro_spring2019*bio_mix_spring2019$Gymnodinium_helveticum_relBio)+
+                                        (R_C16_micro_spring2019*bio_mix_spring2019$Ciliata_relBio)+
+                                        (R_C16_micro_spring2019*bio_mix_spring2019$Rotifera_relBio))
+
+
+### summer 2019
+
+bio_mix_summer2019 <- phyto.micro_Avg.rel.bioVol.dec[3:3,]
+
+
+R_C16_mix_summer2019 <- as.data.frame(((norm_cyano_alpha_C16_water.df*R_water_summer2019)*bio_mix_summer2019$cyanobacteria_relBio)+
+                                        ((norm_GA_alpha_C16_water.df*R_water_summer2019)*bio_mix_summer2019$green.algae_relBio)+
+                                        ((norm_chryso_alpha_C16_water.df*R_water_summer2019)*bio_mix_summer2019$Chrysophyta_relBio)+
+                                        ((norm_dia_alpha_C16_water.df*R_water_summer2019)*bio_mix_summer2019$Diatoms_relBio)+
+                                        ((norm_dino_alpha_C16_water.df*R_water_summer2019)*bio_mix_summer2019$Dinoflagellates_relBio)+
+                                        ((norm_crypto_alpha_C16_water.df*R_water_summer2019)*bio_mix_summer2019$Cryptophyceae_relBio)+
+                                        (R_C16_micro_summer2019*bio_mix_summer2019$Gymnodinium_helveticum_relBio)+
+                                        (R_C16_micro_summer2019*bio_mix_summer2019$Ciliata_relBio)+
+                                        (R_C16_micro_summer2019*bio_mix_summer2019$Rotifera_relBio))
+
+
+### autumn 2019
+
+bio_mix_autumn2019 <- phyto.micro_Avg.rel.bioVol.dec[4:4,]
+
+
+R_C16_mix_autumn2019 <- as.data.frame(((norm_cyano_alpha_C16_water.df*R_water_autumn2019)*bio_mix_autumn2019$cyanobacteria_relBio)+
+                                        ((norm_GA_alpha_C16_water.df*R_water_autumn2019)*bio_mix_autumn2019$green.algae_relBio)+
+                                        ((norm_chryso_alpha_C16_water.df*R_water_autumn2019)*bio_mix_autumn2019$Chrysophyta_relBio)+
+                                        ((norm_dia_alpha_C16_water.df*R_water_autumn2019)*bio_mix_autumn2019$Diatoms_relBio)+
+                                        ((norm_dino_alpha_C16_water.df*R_water_autumn2019)*bio_mix_autumn2019$Dinoflagellates_relBio)+
+                                        ((norm_crypto_alpha_C16_water.df*R_water_autumn2019)*bio_mix_autumn2019$Cryptophyceae_relBio)+
+                                        (R_C16_micro_autumn2019*bio_mix_autumn2019$Gymnodinium_helveticum_relBio)+
+                                        (R_C16_micro_autumn2019*bio_mix_autumn2019$Ciliata_relBio)+
+                                        (R_C16_micro_autumn2019*bio_mix_autumn2019$Rotifera_relBio))
+
+
+### winter 2019-2020
+
+bio_mix_winter2020 <- phyto.micro_Avg.rel.bioVol.dec[5:5,]
+
+
+R_C16_mix_winter2020 <- as.data.frame(((norm_cyano_alpha_C16_water.df*R_water_winter2020)*bio_mix_winter2020$cyanobacteria_relBio)+
+                                        ((norm_GA_alpha_C16_water.df*R_water_winter2020)*bio_mix_winter2020$green.algae_relBio)+
+                                        ((norm_chryso_alpha_C16_water.df*R_water_winter2020)*bio_mix_winter2020$Chrysophyta_relBio)+
+                                        ((norm_dia_alpha_C16_water.df*R_water_winter2020)*bio_mix_winter2020$Diatoms_relBio)+
+                                        ((norm_dino_alpha_C16_water.df*R_water_winter2020)*bio_mix_winter2020$Dinoflagellates_relBio)+
+                                        ((norm_crypto_alpha_C16_water.df*R_water_winter2020)*bio_mix_winter2020$Cryptophyceae_relBio)+
+                                        (R_C16_micro_winter2020*bio_mix_winter2020$Gymnodinium_helveticum_relBio)+
+                                        (R_C16_micro_winter2020*bio_mix_winter2020$Ciliata_relBio)+
+                                        (R_C16_micro_winter2020*bio_mix_winter2020$Rotifera_relBio))
+
+
+
+# modeling R sterol values
+
+### year 2019-2020
+
+eukary_mix_year <- eukary.algae.micro_Avg.rel.bioVol.dec[6:6,]
+
+
+R_sterol_mix_year <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water_year)*eukary_mix_year$green.algae_relBio)+
+                                     ((norm_chryso_alpha_sterol_water.df*R_water_year)*eukary_mix_year$Chrysophyta_relBio)+
+                                     ((norm_dia_alpha_sterol_water.df*R_water_year)*eukary_mix_year$Diatoms_relBio)+
+                                     ((norm_dino_alpha_sterol_water.df*R_water_year)*eukary_mix_year$Dinoflagellates_relBio)+
+                                     ((norm_crypto_alpha_sterol_water.df*R_water_year)*eukary_mix_year$Cryptophyceae_relBio)+
+                                     (R_sterol_micro_year*eukary_mix_year$Gymnodinium_helveticum_relBio)+
+                                     (R_sterol_micro_year*eukary_mix_year$Ciliata_relBio)+
+                                     (R_sterol_micro_year*eukary_mix_year$Rotifera_relBio))
+
+
+### winter 2019
+
+eukary_mix_winter2019 <- eukary.algae.micro_Avg.rel.bioVol.dec[1:1,]
+
+
+R_sterol_mix_winter2019 <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water_winter2019)*eukary_mix_winter2019$green.algae_relBio)+
+                                           ((norm_chryso_alpha_sterol_water.df*R_water_winter2019)*eukary_mix_winter2019$Chrysophyta_relBio)+
+                                           ((norm_dia_alpha_sterol_water.df*R_water_winter2019)*eukary_mix_winter2019$Diatoms_relBio)+
+                                           ((norm_dino_alpha_sterol_water.df*R_water_winter2019)*eukary_mix_winter2019$Dinoflagellates_relBio)+
+                                           ((norm_crypto_alpha_sterol_water.df*R_water_winter2019)*eukary_mix_winter2019$Cryptophyceae_relBio)+
+                                           (R_sterol_micro_winter2019*eukary_mix_winter2019$Gymnodinium_helveticum_relBio)+
+                                           (R_sterol_micro_winter2019*eukary_mix_winter2019$Ciliata_relBio)+
+                                           (R_sterol_micro_winter2019*eukary_mix_winter2019$Rotifera_relBio))
+
+
+### spring 2019
+
+eukary_mix_spring2019 <- eukary.algae.micro_Avg.rel.bioVol.dec[2:2,]
+
+
+R_sterol_mix_spring2019 <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water_spring2019)*eukary_mix_spring2019$green.algae_relBio)+
+                                           ((norm_chryso_alpha_sterol_water.df*R_water_spring2019)*eukary_mix_spring2019$Chrysophyta_relBio)+
+                                           ((norm_dia_alpha_sterol_water.df*R_water_spring2019)*eukary_mix_spring2019$Diatoms_relBio)+
+                                           ((norm_dino_alpha_sterol_water.df*R_water_spring2019)*eukary_mix_spring2019$Dinoflagellates_relBio)+
+                                           ((norm_crypto_alpha_sterol_water.df*R_water_spring2019)*eukary_mix_spring2019$Cryptophyceae_relBio)+
+                                           (R_sterol_micro_spring2019*eukary_mix_spring2019$Gymnodinium_helveticum_relBio)+
+                                           (R_sterol_micro_spring2019*eukary_mix_spring2019$Ciliata_relBio)+
+                                           (R_sterol_micro_spring2019*eukary_mix_spring2019$Rotifera_relBio))
+
+
+### summer 2019
+
+eukary_mix_summer2019 <- eukary.algae.micro_Avg.rel.bioVol.dec[3:3,]
+
+
+R_sterol_mix_summer2019 <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water_summer2019)*eukary_mix_summer2019$green.algae_relBio)+
+                                           ((norm_chryso_alpha_sterol_water.df*R_water_summer2019)*eukary_mix_summer2019$Chrysophyta_relBio)+
+                                           ((norm_dia_alpha_sterol_water.df*R_water_summer2019)*eukary_mix_summer2019$Diatoms_relBio)+
+                                           ((norm_dino_alpha_sterol_water.df*R_water_summer2019)*eukary_mix_summer2019$Dinoflagellates_relBio)+
+                                           ((norm_crypto_alpha_sterol_water.df*R_water_summer2019)*eukary_mix_summer2019$Cryptophyceae_relBio)+
+                                           (R_sterol_micro_summer2019*eukary_mix_summer2019$Gymnodinium_helveticum_relBio)+
+                                           (R_sterol_micro_summer2019*eukary_mix_summer2019$Ciliata_relBio)+
+                                           (R_sterol_micro_summer2019*eukary_mix_summer2019$Rotifera_relBio))
+
+
+### autumn 2019
+
+eukary_mix_autumn2019 <-  eukary.algae.micro_Avg.rel.bioVol.dec[4:4,]
+
+
+R_sterol_mix_autumn2019 <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water_autumn2019)*eukary_mix_autumn2019$green.algae_relBio)+
+                                           ((norm_chryso_alpha_sterol_water.df*R_water_autumn2019)*eukary_mix_autumn2019$Chrysophyta_relBio)+
+                                           ((norm_dia_alpha_sterol_water.df*R_water_autumn2019)*eukary_mix_autumn2019$Diatoms_relBio)+
+                                           ((norm_dino_alpha_sterol_water.df*R_water_autumn2019)*eukary_mix_autumn2019$Dinoflagellates_relBio)+
+                                           ((norm_crypto_alpha_sterol_water.df*R_water_autumn2019)*eukary_mix_autumn2019$Cryptophyceae_relBio)+
+                                           (R_sterol_micro_autumn2019*eukary_mix_autumn2019$Gymnodinium_helveticum_relBio)+
+                                           (R_sterol_micro_autumn2019*eukary_mix_autumn2019$Ciliata_relBio)+
+                                           (R_sterol_micro_autumn2019*eukary_mix_autumn2019$Rotifera_relBio))
+
+
+### winter 2019-2020
+
+eukary_mix_winter2020 <-  eukary.algae.micro_Avg.rel.bioVol.dec[5:5,]
+
+
+R_sterol_mix_winter2020 <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water_winter2020)*eukary_mix_winter2020$green.algae_relBio)+
+                                           ((norm_chryso_alpha_sterol_water.df*R_water_winter2020)*eukary_mix_winter2020$Chrysophyta_relBio)+
+                                           ((norm_dia_alpha_sterol_water.df*R_water_winter2020)*eukary_mix_winter2020$Diatoms_relBio)+
+                                           ((norm_dino_alpha_sterol_water.df*R_water_winter2020)*eukary_mix_winter2020$Dinoflagellates_relBio)+
+                                           ((norm_crypto_alpha_sterol_water.df*R_water_winter2020)*eukary_mix_winter2020$Cryptophyceae_relBio)+
+                                           (R_sterol_micro_winter2020*eukary_mix_winter2020$Gymnodinium_helveticum_relBio)+
+                                           (R_sterol_micro_winter2020*eukary_mix_winter2020$Ciliata_relBio)+
+                                           (R_sterol_micro_winter2020*eukary_mix_winter2020$Rotifera_relBio))
+
+```
+
+## calculation of epsilon lipid1/lipid2 values including algal and microzooplankton R lipid values (epsilon lipid1/lipid2 phyto&zoo)
+
+```{r}
+#epsilon C16:0/phytol 
+
+## year 2019-2020
+
+epsilon_C16_phytol_mix_year <- as.data.frame(((R_C16_mix_year/R_phytol_year)-1)*1000)
+
+colnames(epsilon_C16_phytol_mix_year) <- c("eps_C16_phytol_mix_year")
+mean_eps_C16_phytol_mix_year <- mean(epsilon_C16_phytol_mix_year$eps_C16_phytol_mix_year) 
+sd_eps_C16_phytol_mix_year <- sd(epsilon_C16_phytol_mix_year$eps_C16_phytol_mix_year) 
+
+## winter 2019 
+
+epsilon_C16_phytol_mix_winter2019 <- as.data.frame(((R_C16_mix_winter2019/R_phytol_winter2019)-1)*1000)
+
+colnames(epsilon_C16_phytol_mix_winter2019) <- c("eps_C16_phytol_mix_winter2019")
+mean_eps_C16_phytol_mix_winter2019 <- mean(epsilon_C16_phytol_mix_winter2019$eps_C16_phytol_mix_winter2019) 
+sd_eps_C16_phytol_mix_winter2019 <- sd(epsilon_C16_phytol_mix_winter2019$eps_C16_phytol_mix_winter2019) 
+
+## spring 2019
+
+epsilon_C16_phytol_mix_spring2019 <- as.data.frame(((R_C16_mix_spring2019/R_phytol_spring2019)-1)*1000)
+
+colnames(epsilon_C16_phytol_mix_spring2019) <- c("eps_C16_phytol_mix_spring2019")
+mean_eps_C16_phytol_mix_spring2019 <- mean(epsilon_C16_phytol_mix_spring2019$eps_C16_phytol_mix_spring2019) 
+sd_eps_C16_phytol_mix_spring2019 <- sd(epsilon_C16_phytol_mix_spring2019$eps_C16_phytol_mix_spring2019) 
+
+## summer 2019
+
+epsilon_C16_phytol_mix_summer2019 <- as.data.frame(((R_C16_mix_summer2019/R_phytol_summer2019)-1)*1000)
+
+colnames(epsilon_C16_phytol_mix_summer2019) <- c("eps_C16_phytol_mix_summer2019")
+mean_eps_C16_phytol_mix_summer2019 <- mean(epsilon_C16_phytol_mix_summer2019$eps_C16_phytol_mix_summer2019) 
+sd_eps_C16_phytol_mix_summer2019 <- sd(epsilon_C16_phytol_mix_summer2019$eps_C16_phytol_mix_summer2019) 
+
+## autumn 2019
+
+epsilon_C16_phytol_mix_autumn2019 <- as.data.frame(((R_C16_mix_autumn2019/R_phytol_autumn2019)-1)*1000)
+
+colnames(epsilon_C16_phytol_mix_autumn2019) <- c("eps_C16_phytol_mix_autumn2019")
+mean_eps_C16_phytol_mix_autumn2019 <- mean(epsilon_C16_phytol_mix_autumn2019$eps_C16_phytol_mix_autumn2019) 
+sd_eps_C16_phytol_mix_autumn2019 <- sd(epsilon_C16_phytol_mix_autumn2019$eps_C16_phytol_mix_autumn2019) 
+
+## winter 2019-2020
+
+epsilon_C16_phytol_mix_winter2020 <- as.data.frame(((R_C16_mix_winter2020/R_phytol_winter2020)-1)*1000)
+
+colnames(epsilon_C16_phytol_mix_winter2020) <- c("eps_C16_phytol_mix_winter2020")
+mean_eps_C16_phytol_mix_winter2020 <- mean(epsilon_C16_phytol_mix_winter2020$eps_C16_phytol_mix_winter2020) 
+sd_eps_C16_phytol_mix_winter2020 <- sd(epsilon_C16_phytol_mix_winter2020$eps_C16_phytol_mix_winter2020) 
+
+
+#epsilon C16:0/sterol
+
+## year 2019-2020
+
+epsilon_C16_sterol_mix_year <- as.data.frame(((R_C16_mix_year/R_sterol_mix_year)-1)*1000)
+
+colnames(epsilon_C16_sterol_mix_year) <- c("eps_C16_sterol_mix_year")
+mean_eps_C16_sterol_mix_year <- mean(epsilon_C16_sterol_mix_year$eps_C16_sterol_mix_year) 
+sd_eps_C16_sterol_mix_year <- sd(epsilon_C16_sterol_mix_year$eps_C16_sterol_mix_year) 
+
+## winter 2019 
+
+epsilon_C16_sterol_mix_winter2019 <- as.data.frame(((R_C16_mix_winter2019/R_sterol_mix_winter2019)-1)*1000)
+
+colnames(epsilon_C16_sterol_mix_winter2019) <- c("eps_C16_sterol_mix_winter2019")
+mean_eps_C16_sterol_mix_winter2019 <- mean(epsilon_C16_sterol_mix_winter2019$eps_C16_sterol_mix_winter2019) 
+sd_eps_C16_sterol_mix_winter2019 <- sd(epsilon_C16_sterol_mix_winter2019$eps_C16_sterol_mix_winter2019) 
+
+## spring 2019
+
+epsilon_C16_sterol_mix_spring2019 <- as.data.frame(((R_C16_mix_spring2019/R_sterol_mix_spring2019)-1)*1000)
+
+colnames(epsilon_C16_sterol_mix_spring2019) <- c("eps_C16_sterol_mix_spring2019")
+mean_eps_C16_sterol_mix_spring2019 <- mean(epsilon_C16_sterol_mix_spring2019$eps_C16_sterol_mix_spring2019) 
+sd_eps_C16_sterol_mix_spring2019 <- sd(epsilon_C16_sterol_mix_spring2019$eps_C16_sterol_mix_spring2019) 
+
+## summer 2019
+
+epsilon_C16_sterol_mix_summer2019 <- as.data.frame(((R_C16_mix_summer2019/R_sterol_mix_summer2019)-1)*1000)
+
+colnames(epsilon_C16_sterol_mix_summer2019) <- c("eps_C16_sterol_mix_summer2019")
+mean_eps_C16_sterol_mix_summer2019 <- mean(epsilon_C16_sterol_mix_summer2019$eps_C16_sterol_mix_summer2019) 
+sd_eps_C16_sterol_mix_summer2019 <- sd(epsilon_C16_sterol_mix_summer2019$eps_C16_sterol_mix_summer2019) 
+
+## autumn 2019
+
+epsilon_C16_sterol_mix_autumn2019 <- as.data.frame(((R_C16_mix_autumn2019/R_sterol_mix_autumn2019)-1)*1000)
+
+colnames(epsilon_C16_sterol_mix_autumn2019) <- c("eps_C16_sterol_mix_autumn2019")
+mean_eps_C16_sterol_mix_autumn2019 <- mean(epsilon_C16_sterol_mix_autumn2019$eps_C16_sterol_mix_autumn2019) 
+sd_eps_C16_sterol_mix_autumn2019 <- sd(epsilon_C16_sterol_mix_autumn2019$eps_C16_sterol_mix_autumn2019) 
+
+## winter 2019-2020
+
+epsilon_C16_sterol_mix_winter2020 <- as.data.frame(((R_C16_mix_winter2020/R_sterol_mix_winter2020)-1)*1000)
+
+colnames(epsilon_C16_sterol_mix_winter2020) <- c("eps_C16_sterol_mix_winter2020")
+mean_eps_C16_sterol_mix_winter2020 <- mean(epsilon_C16_sterol_mix_winter2020$eps_C16_sterol_mix_winter2020) 
+sd_eps_C16_sterol_mix_winter2020 <- sd(epsilon_C16_sterol_mix_winter2020$eps_C16_sterol_mix_winter2020) 
+
+
+#epsilon sterol/phytol
+
+## year 2019-2020
+
+epsilon_sterol_phytol_mix_year <- as.data.frame(((R_sterol_mix_year/R_phytol_year)-1)*1000)
+
+colnames(epsilon_sterol_phytol_mix_year) <- c("eps_sterol_phytol_mix_year")
+mean_eps_sterol_phytol_mix_year <- mean(epsilon_sterol_phytol_mix_year$eps_sterol_phytol_mix_year) 
+sd_eps_sterol_phytol_mix_year <- sd(epsilon_sterol_phytol_mix_year$eps_sterol_phytol_mix_year) 
+
+## winter 2019 
+
+epsilon_sterol_phytol_mix_winter2019 <- as.data.frame(((R_sterol_mix_winter2019/R_phytol_winter2019)-1)*1000)
+
+colnames(epsilon_sterol_phytol_mix_winter2019) <- c("eps_sterol_phytol_mix_winter2019")
+mean_eps_sterol_phytol_mix_winter2019 <- mean(epsilon_sterol_phytol_mix_winter2019$eps_sterol_phytol_mix_winter2019) 
+sd_eps_sterol_phytol_mix_winter2019 <- sd(epsilon_sterol_phytol_mix_winter2019$eps_sterol_phytol_mix_winter2019)
+
+## spring 2019
+
+epsilon_sterol_phytol_mix_spring2019 <- as.data.frame(((R_sterol_mix_spring2019/R_phytol_spring2019)-1)*1000)
+
+colnames(epsilon_sterol_phytol_mix_spring2019) <- c("eps_sterol_phytol_mix_spring2019")
+mean_eps_sterol_phytol_mix_spring2019 <- mean(epsilon_sterol_phytol_mix_spring2019$eps_sterol_phytol_mix_spring2019) 
+sd_eps_sterol_phytol_mix_spring2019 <- sd(epsilon_sterol_phytol_mix_spring2019$eps_sterol_phytol_mix_spring2019)
+
+## summer 2019
+
+epsilon_sterol_phytol_mix_summer2019 <- as.data.frame(((R_sterol_mix_summer2019/R_phytol_summer2019)-1)*1000)
+
+colnames(epsilon_sterol_phytol_mix_summer2019) <- c("eps_sterol_phytol_mix_summer2019")
+mean_eps_sterol_phytol_mix_summer2019 <- mean(epsilon_sterol_phytol_mix_summer2019$eps_sterol_phytol_mix_summer2019) 
+sd_eps_sterol_phytol_mix_summer2019 <- sd(epsilon_sterol_phytol_mix_summer2019$eps_sterol_phytol_mix_summer2019)
+
+## autumn 2019
+
+epsilon_sterol_phytol_mix_autumn2019 <- as.data.frame(((R_sterol_mix_autumn2019/R_phytol_autumn2019)-1)*1000)
+
+colnames(epsilon_sterol_phytol_mix_autumn2019) <- c("eps_sterol_phytol_mix_autumn2019")
+mean_eps_sterol_phytol_mix_autumn2019 <- mean(epsilon_sterol_phytol_mix_autumn2019$eps_sterol_phytol_mix_autumn2019) 
+sd_eps_sterol_phytol_mix_autumn2019 <- sd(epsilon_sterol_phytol_mix_autumn2019$eps_sterol_phytol_mix_autumn2019)
+
+## winter 2019-2020
+
+epsilon_sterol_phytol_mix_winter2020 <- as.data.frame(((R_sterol_mix_winter2020/R_phytol_winter2020)-1)*1000)
+
+colnames(epsilon_sterol_phytol_mix_winter2020) <- c("eps_sterol_phytol_mix_winter2020")
+mean_eps_sterol_phytol_mix_winter2020 <- mean(epsilon_sterol_phytol_mix_winter2020$eps_sterol_phytol_mix_winter2020) 
+sd_eps_sterol_phytol_mix_winter2020 <- sd(epsilon_sterol_phytol_mix_winter2020$eps_sterol_phytol_mix_winter2020)
+
+
+
+# creating data frame including mean and sd of modeled epsilon lipid1/lipid2 auto-/heterotroph values 
+
+mean_eps_C16_phytol_modeled_mix <- rbind.data.frame(mean_eps_C16_phytol_mix_winter2019, 
+                                                    mean_eps_C16_phytol_mix_spring2019, 
+                                                    mean_eps_C16_phytol_mix_summer2019, 
+                                                    mean_eps_C16_phytol_mix_autumn2019, 
+                                                    mean_eps_C16_phytol_mix_winter2020,
+                                                    mean_eps_C16_phytol_mix_year)
+
+sd_eps_C16_phytol_modeled_mix <- rbind.data.frame(sd_eps_C16_phytol_mix_winter2019, 
+                                                  sd_eps_C16_phytol_mix_spring2019, 
+                                                  sd_eps_C16_phytol_mix_summer2019, 
+                                                  sd_eps_C16_phytol_mix_autumn2019, 
+                                                  sd_eps_C16_phytol_mix_winter2020,
+                                                  sd_eps_C16_phytol_mix_year)
+
+mean_eps_C16_sterol_modeled_mix <- rbind.data.frame(mean_eps_C16_sterol_mix_winter2019, 
+                                                    mean_eps_C16_sterol_mix_spring2019, 
+                                                    mean_eps_C16_sterol_mix_summer2019, 
+                                                    mean_eps_C16_sterol_mix_autumn2019, 
+                                                    mean_eps_C16_sterol_mix_winter2020,
+                                                    mean_eps_C16_sterol_mix_year)
+
+sd_eps_C16_sterol_modeled_mix <- rbind.data.frame(sd_eps_C16_sterol_mix_winter2019, 
+                                                  sd_eps_C16_sterol_mix_spring2019, 
+                                                  sd_eps_C16_sterol_mix_summer2019, 
+                                                  sd_eps_C16_sterol_mix_autumn2019, 
+                                                  sd_eps_C16_sterol_mix_winter2020,
+                                                  sd_eps_C16_sterol_mix_year)
+
+mean_eps_sterol_phytol_modeled_mix <- rbind.data.frame(mean_eps_sterol_phytol_mix_winter2019, 
+                                                       mean_eps_sterol_phytol_mix_spring2019, 
+                                                       mean_eps_sterol_phytol_mix_summer2019, 
+                                                       mean_eps_sterol_phytol_mix_autumn2019, 
+                                                       mean_eps_sterol_phytol_mix_winter2020,
+                                                       mean_eps_sterol_phytol_mix_year)
+
+sd_eps_sterol_phytol_modeled_mix <- rbind.data.frame(sd_eps_sterol_phytol_mix_winter2019, 
+                                                     sd_eps_sterol_phytol_mix_spring2019, 
+                                                     sd_eps_sterol_phytol_mix_summer2019, 
+                                                     sd_eps_sterol_phytol_mix_autumn2019, 
+                                                     sd_eps_sterol_phytol_mix_winter2020,
+                                                     sd_eps_sterol_phytol_mix_year)
+
+Avg.eps_lipid1.2_modeled_mix <- cbind.data.frame(mean_eps_C16_phytol_modeled_mix, sd_eps_C16_phytol_modeled_mix,
+                                                 mean_eps_C16_sterol_modeled_mix, sd_eps_C16_sterol_modeled_mix,
+                                                 mean_eps_sterol_phytol_modeled_mix, sd_eps_sterol_phytol_modeled_mix)
+
+
+colnames(Avg.eps_lipid1.2_modeled_mix) <- c("mean_eps_C16_phytol_mix", "sd_eps_C16_phytol_mix",
+                                            "mean_eps_C16_sterol_mix", "sd_eps_C16_sterol_mix",
+                                            "mean_eps_sterol_phytol_mix", "sd_eps_sterol_phytol_mix")
+
+```
+## plotting measured and modeled epsilon lipid1/lipid2 values
+
+```{r}
+#separating measured yearly and seasonal weighted average epsilon lipid1/lipid2 values 
+
+epsilon_lipid1.2_year <- Avg.epsilon_lipid1.2[6:6,]
+
+epsilon_lipid1.2_seasons <- Avg.epsilon_lipid1.2[1:5,]
+
+
+#setting index for measured epsilon lipid1/lipid2 values
+
+## epsilon C16:0/phytol
+
+### year 2019-2020
+
+epsilon_C16.0_phytol_year <- as.data.frame(t(epsilon_lipid1.2_year$epsilon_C16.0_phytol))
+colnames(epsilon_C16.0_phytol_year)<- c("value")
+
+epsilon_C16.0_phytol_year$index <- c(-0.5)
+epsilon_C16.0_phytol_year$variable <- c("epsilon_C16.0_phytol")
+
+#### seasons
+
+epsilon_C16.0_phytol_seasons <- as.data.frame(epsilon_lipid1.2_seasons$epsilon_C16.0_phytol)
+
+colnames(epsilon_C16.0_phytol_seasons)<- c("value")
+
+epsilon_C16.0_phytol_seasons$index <- c(1,2,3,4,5)
+
+## epsilon C16:0/sterol
+
+### year 2019-2020
+
+epsilon_C16.0_sterol_year <- as.data.frame(t(epsilon_lipid1.2_year$epsilon_C16.0_sterol))
+colnames(epsilon_C16.0_sterol_year)<- c("value")
+
+epsilon_C16.0_sterol_year$index <- c(-0.5)
+epsilon_C16.0_sterol_year$variable <- c("epsilon_C16.0_sterol")
+
+#### seasons
+
+epsilon_C16.0_sterol_seasons <- as.data.frame(epsilon_lipid1.2_seasons$epsilon_C16.0_sterol)
+
+colnames(epsilon_C16.0_sterol_seasons)<- c("value")
+
+epsilon_C16.0_sterol_seasons$index <- c(1,2,3,4,5)
+
+## epsilon sterol/phytol
+
+### year 2019-2020
+
+epsilon_sterol_phytol_year <- as.data.frame(t(epsilon_lipid1.2_year$epsilon_sterol_phytol))
+colnames(epsilon_sterol_phytol_year)<- c("value")
+
+epsilon_sterol_phytol_year$index <- c(-0.5)
+epsilon_sterol_phytol_year$variable <- c("epsilon_sterol_phytol")
+
+### seasons
+
+epsilon_sterol_phytol_seasons <- as.data.frame(epsilon_lipid1.2_seasons$epsilon_sterol_phytol)
+
+colnames(epsilon_sterol_phytol_seasons)<- c("value")
+
+epsilon_sterol_phytol_seasons$index <- c(1,2,3,4,5)
+
+
+#setting index for modeled epsilon lipid1/lipid2 autotroph values
+
+## epsilon C16:0/phytol
+
+### year 2019-2020
+
+epsilon_C16_phytol_phyto_year$index <- c(rep(-0.775,50000))
+
+epsilon_C16_phytol_phyto_year$variable <- c("eps_C16_phytol_phyto_year")
+
+### seasons 
+
+epsilon_C16_phytol_phyto_winter2019$index <- c(rep(0.725,50000))
+
+epsilon_C16_phytol_phyto_spring2019$index <- c(rep(1.725,50000))
+
+epsilon_C16_phytol_phyto_summer2019$index <- c(rep(2.725,50000))
+
+epsilon_C16_phytol_phyto_autumn2019$index <- c(rep(3.725,50000))
+
+epsilon_C16_phytol_phyto_winter2020$index <- c(rep(4.725,50000))
+
+
+## epsilon C16:0/sterol
+
+### year 2019-2020
+
+epsilon_C16_sterol_phyto_year$index <- c(rep(-0.775,50000))
+epsilon_C16_sterol_phyto_year$variable <- c("eps_C16_sterol_phyto_year")
+
+### seasons
+
+epsilon_C16_sterol_phyto_winter2019$index <- c(rep(0.725,50000))
+
+epsilon_C16_sterol_phyto_spring2019$index <- c(rep(1.725,50000))
+
+epsilon_C16_sterol_phyto_summer2019$index <- c(rep(2.725,50000))
+
+epsilon_C16_sterol_phyto_autumn2019$index <- c(rep(3.725,50000))
+
+epsilon_C16_sterol_phyto_winter2020$index <- c(rep(4.725,50000))
+
+
+## epsilon sterol/phytol
+
+### year 2019-2020
+
+epsilon_sterol_phytol_phyto_year$index <- c(rep(-0.775,50000))
+epsilon_sterol_phytol_phyto_year$variable <- c("eps_sterol_phytol_phyto_year")
+
+### seasons 
+
+epsilon_sterol_phytol_phyto_winter2019$index <- c(rep(0.725,50000))
+
+epsilon_sterol_phytol_phyto_spring2019$index <- c(rep(1.725,50000))
+
+epsilon_sterol_phytol_phyto_summer2019$index <- c(rep(2.725,50000))
+
+epsilon_sterol_phytol_phyto_autumn2019$index <- c(rep(3.725,50000))
+
+epsilon_sterol_phytol_phyto_winter2020$index <- c(rep(4.725,50000))
+
+
+#setting index for modeled epsilon lipid1/lipid2 auto-/heterotroph values
+
+## epsilon C16:0/phytol
+
+### year 2019-2020
+
+epsilon_C16_phytol_mix_year$index <- c(rep(-0.225,50000))
+epsilon_C16_phytol_mix_year$variable <- c("eps_C16_phytol_mix_year")
+
+### seasons
+
+epsilon_C16_phytol_mix_winter2019$index <- c(rep(1.275,50000))
+
+epsilon_C16_phytol_mix_spring2019$index <- c(rep(2.275,50000))
+
+epsilon_C16_phytol_mix_summer2019$index <- c(rep(3.275,50000))
+
+epsilon_C16_phytol_mix_autumn2019$index <- c(rep(4.275,50000))
+
+epsilon_C16_phytol_mix_winter2020$index <- c(rep(5.275,50000))
+
+## epsilon C16:0/sterol
+
+### year 2019-2020
+
+epsilon_C16_sterol_mix_year$index <- c(rep(-0.225,50000))
+epsilon_C16_sterol_mix_year$variable <- c("eps_C16_sterol_mix_year")
+
+### seasons
+
+epsilon_C16_sterol_mix_winter2019$index <- c(rep(1.275,50000))
+
+epsilon_C16_sterol_mix_spring2019$index <- c(rep(2.275,50000))
+
+epsilon_C16_sterol_mix_summer2019$index <- c(rep(3.275,50000))
+
+epsilon_C16_sterol_mix_autumn2019$index <- c(rep(4.275,50000))
+
+epsilon_C16_sterol_mix_winter2020$index <- c(rep(5.275,50000))
+
+## epsilon sterol/phytol
+
+### year 2019-2020
+
+epsilon_sterol_phytol_mix_year$index <- c(rep(-0.225,50000))
+epsilon_sterol_phytol_mix_year$variable <- c("eps_sterol_phytol_mix_year")
+
+### seasons
+
+epsilon_sterol_phytol_mix_winter2019$index <- c(rep(1.275,50000))
+
+epsilon_sterol_phytol_mix_spring2019$index <- c(rep(2.275,50000))
+
+epsilon_sterol_phytol_mix_summer2019$index <- c(rep(3.275,50000))
+
+epsilon_sterol_phytol_mix_autumn2019$index <- c(rep(4.275,50000))
+
+epsilon_sterol_phytol_mix_winter2020$index <- c(rep(5.275,50000))
+
+
+#Fig.6 
+
+pAvg.Eps_C16.0_phytol <- ggplot() + 
+  geom_boxplot(data=epsilon_C16_phytol_phyto_year, aes(x=index, y=eps_C16_phytol_phyto_year, fill= variable),
+               middle= mean(epsilon_C16_phytol_phyto_year$eps_C16_phytol_phyto_year), coef=0, width=0.25, 
+               color="dodgerblue3", outlier.shape=NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[6:6,1:2], 
+                aes(x=-0.775, y= mean_eps_C16_phytol_phyto, xmin=-0.775, xmax=-0.775,
+                    ymin=(mean_eps_C16_phytol_phyto-sd_eps_C16_phytol_phyto),
+                    ymax=(mean_eps_C16_phytol_phyto+sd_eps_C16_phytol_phyto)),
+                color="dodgerblue3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_phytol_mix_year, aes(x=index, y=eps_C16_phytol_mix_year, fill= variable),
+               middle= mean(epsilon_C16_phytol_mix_year$eps_C16_phytol_mix_year), coef=0, width=0.25, 
+               color="turquoise3",outlier.shape=NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[6:6,1:2], 
+                aes(x=-0.225, y= mean_eps_C16_phytol_mix, xmin=-0.225, xmax=-0.225,
+                    ymin=(mean_eps_C16_phytol_mix-sd_eps_C16_phytol_mix),
+                    ymax=(mean_eps_C16_phytol_mix+sd_eps_C16_phytol_mix)),
+                color="turquoise3", width=0.25)+
+  geom_point(data=epsilon_C16.0_phytol_year, aes(x = index, y = value, shape=variable),size=9, fill="blue3",
+             color="black")+
+  scale_fill_manual(labels=c(eps_C16_phytol_phyto_year= "phyto modeled",
+                             #expression(epsilon^{2}*""['C16:0/phytol phyto']~"modeled"),
+                             eps_C16_phytol_mix_year= "phyto&zoo modeled"),
+                    #expression(epsilon^{2}*""['C16:0/phytol phyto&micro']~"modeled")),
+                    values=c(eps_C16_phytol_phyto_year = "skyblue1" ,
+                             eps_C16_phytol_mix_year= "paleturquoise2"),
+                    breaks= c("eps_C16_phytol_phyto_year", "eps_C16_phytol_mix_year"))+
+  scale_shape_manual(labels=c(epsilon_C16.0_phytol= "measured"),
+                     #expression(epsilon^{2}*""['C16:0/phytol']~"measured")),
+                     values=c(epsilon_C16.0_phytol=23))+
+  ylab(expression(epsilon^{2}*""['C16:0/phytol']~("\u2030")))+ 
+  annotate("rect", xmin = 0.5 ,xmax = 1.5 , ymin = -Inf, ymax = 375, alpha=0.2, fill="lightblue2")+
+  annotate("rect", xmin = 1.5 ,xmax = 2.5 , ymin = -Inf, ymax = 375, alpha=0.2, fill="palegreen2")+
+  annotate("rect", xmin = 2.5 ,xmax = 3.5 , ymin = -Inf, ymax = 375, alpha=0.12, fill="gold")+
+  annotate("rect", xmin = 3.5 ,xmax = 4.5, ymin = -Inf, ymax = 375, alpha=0.15, fill="orange")+
+  annotate("rect", xmin = 4.5 ,xmax = 5.5 , ymin = -Inf, ymax = 375, alpha=0.2, fill="lightblue2")+
+  geom_point(data=epsilon_C16.0_phytol_seasons, aes(x = index, y = value), fill="blue3",size=9, shape=23)+  
+  geom_boxplot(data=epsilon_C16_phytol_phyto_winter2019, aes(x=index, y=eps_C16_phytol_phyto_winter2019), 
+               middle= mean(epsilon_C16_phytol_phyto_winter2019$eps_C16_phytol_phyto_winter2019), coef=0,
+               width=0.25, fill="skyblue1", color="dodgerblue3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[1:1,1:2], 
+                aes(x=0.725, y=mean_eps_C16_phytol_phyto ,xmin=0.725, xmax=0.725, 
+                    ymin=(mean_eps_C16_phytol_phyto-sd_eps_C16_phytol_phyto),
+                    ymax=(mean_eps_C16_phytol_phyto+sd_eps_C16_phytol_phyto)), color="dodgerblue3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_phytol_phyto_spring2019, aes(x=index, y=eps_C16_phytol_phyto_spring2019),
+               middle= mean(epsilon_C16_phytol_phyto_spring2019$eps_C16_phytol_phyto_spring2019), coef=0,
+               width=0.25, fill="skyblue1", color="dodgerblue3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[2:2,1:2], 
+                aes(x=1.725, y=mean_eps_C16_phytol_phyto ,xmin=1.725, xmax=1.725, 
+                    ymin=(mean_eps_C16_phytol_phyto-sd_eps_C16_phytol_phyto),
+                    ymax=(mean_eps_C16_phytol_phyto+sd_eps_C16_phytol_phyto)), color="dodgerblue3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_phytol_phyto_summer2019, aes(x=index, y=eps_C16_phytol_phyto_summer2019),
+               middle= mean(epsilon_C16_phytol_phyto_summer2019$eps_C16_phytol_phyto_summer2019), coef=0,
+               width=0.25,  fill="skyblue1", color="dodgerblue3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[3:3,1:2], 
+                aes(x=2.725, y=mean_eps_C16_phytol_phyto ,xmin=2.725, xmax=2.725, 
+                    ymin=(mean_eps_C16_phytol_phyto-sd_eps_C16_phytol_phyto),
+                    ymax=(mean_eps_C16_phytol_phyto+sd_eps_C16_phytol_phyto)), color="dodgerblue3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_phytol_phyto_autumn2019, aes(x=index, y=eps_C16_phytol_phyto_autumn2019),
+               middle=mean(epsilon_C16_phytol_phyto_autumn2019$eps_C16_phytol_phyto_autumn2019), coef=0,
+               width=0.25, fill="skyblue1", color="dodgerblue3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[4:4,1:2], 
+                aes(x=3.725, y=mean_eps_C16_phytol_phyto ,xmin=3.725, xmax=3.725, 
+                    ymin=(mean_eps_C16_phytol_phyto-sd_eps_C16_phytol_phyto),
+                    ymax=(mean_eps_C16_phytol_phyto+sd_eps_C16_phytol_phyto)), color="dodgerblue3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_phytol_phyto_winter2020, aes(x=index, y=eps_C16_phytol_phyto_winter2020),
+               middle= mean(epsilon_C16_phytol_phyto_winter2020$eps_C16_phytol_phyto_winter2020), coef=0,
+               width=0.25, fill="skyblue1", color="dodgerblue3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[5:5,1:2], 
+                aes(x=4.725, y=mean_eps_C16_phytol_phyto ,xmin=4.725, xmax=4.725, 
+                    ymin=(mean_eps_C16_phytol_phyto-sd_eps_C16_phytol_phyto),
+                    ymax=(mean_eps_C16_phytol_phyto+sd_eps_C16_phytol_phyto)), color="dodgerblue3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_phytol_mix_winter2019, aes(x=index, y=eps_C16_phytol_mix_winter2019), 
+               middle=mean(epsilon_C16_phytol_mix_winter2019$eps_C16_phytol_mix_winter2019), coef=0, width=0.25,
+               fill="paleturquoise2", color="turquoise3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[1:1,1:2], 
+                aes(x=1.275, y=mean_eps_C16_phytol_mix ,xmin=1.275, xmax=1.275, 
+                    ymin=(mean_eps_C16_phytol_mix-sd_eps_C16_phytol_mix),
+                    ymax=(mean_eps_C16_phytol_mix+sd_eps_C16_phytol_mix)), color="turquoise3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_phytol_mix_spring2019, aes(x=index, y=eps_C16_phytol_mix_spring2019),  
+               middle=mean(epsilon_C16_phytol_mix_spring2019$eps_C16_phytol_mix_spring2019), coef=0, width=0.25,
+               fill="paleturquoise2", color="turquoise3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[2:2,1:2], 
+                aes(x=2.275, y=mean_eps_C16_phytol_mix ,xmin=2.275, xmax=2.275, 
+                    ymin=(mean_eps_C16_phytol_mix-sd_eps_C16_phytol_mix),
+                    ymax=(mean_eps_C16_phytol_mix+sd_eps_C16_phytol_mix)), color="turquoise3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_phytol_mix_summer2019, aes(x=index, y=eps_C16_phytol_mix_summer2019),  
+               middle= mean(epsilon_C16_phytol_mix_summer2019$eps_C16_phytol_mix_summer2019), coef=0,
+               width=0.25, fill="paleturquoise2", color="turquoise3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[3:3,1:2], 
+                aes(x=3.275, y=mean_eps_C16_phytol_mix ,xmin=3.275, xmax=3.275, 
+                    ymin=(mean_eps_C16_phytol_mix-sd_eps_C16_phytol_mix),
+                    ymax=(mean_eps_C16_phytol_mix+sd_eps_C16_phytol_mix)), color="turquoise3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_phytol_mix_autumn2019, aes(x=index, y=eps_C16_phytol_mix_autumn2019),  middle=
+                 mean(epsilon_C16_phytol_mix_autumn2019$eps_C16_phytol_mix_autumn2019), coef=0,
+               width=0.25,fill="paleturquoise2", color="turquoise3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[4:4,1:2], 
+                aes(x=4.275, y=mean_eps_C16_phytol_mix ,xmin=4.275, xmax=4.275, 
+                    ymin=(mean_eps_C16_phytol_mix-sd_eps_C16_phytol_mix),
+                    ymax=(mean_eps_C16_phytol_mix+sd_eps_C16_phytol_mix)), color="turquoise3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_phytol_mix_winter2020, aes(x=index, y=eps_C16_phytol_mix_winter2020),  
+               middle= mean(epsilon_C16_phytol_mix_winter2020$eps_C16_phytol_mix_winter2020), coef=0,
+               width=0.25, fill="paleturquoise2", color="turquoise3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[5:5,1:2], 
+                aes(x=5.275, y=mean_eps_C16_phytol_mix ,xmin=5.275, xmax=5.275, 
+                    ymin=(mean_eps_C16_phytol_mix-sd_eps_C16_phytol_mix),
+                    ymax=(mean_eps_C16_phytol_mix+sd_eps_C16_phytol_mix)), color="turquoise3", width=0.25)+
+  annotate("text",x=-1.9,y=387,label="A", size=15, fontface=2, color="black")+
+  annotate("text",x=-0.5,y=387,label="2019-2020", size=10.75,color="black")+
+  annotate("text",x=1,y=387,label="2019", size=10.75,color="black")+
+  annotate("text",x=2,y=387,label="2019", size=10.75,color="black")+
+  annotate("text",x=3,y=387,label="2019", size=10.75,color="black")+
+  annotate("text",x=4,y=387, label="2019", size=10.75,color="black")+
+  annotate("text",x=5,y=387,label="2020", size=10.75,color="black")+
+  coord_cartesian(xlim=c(-1,5.25), ylim=c(175,375), clip="off")+
+  scale_y_continuous(breaks=c(200,250,300,350))+
+  guides(shape = guide_legend(order=1))+
+  theme(axis.line.y = element_line(colour = "black"),
+        axis.line.x = element_blank(),
+        panel.background = element_blank(),
+        legend.key = element_blank(),
+        legend.text = element_text(size=30, color="black"),
+        legend.text.align = 0,
+        legend.spacing.y = unit(0.5, "cm"),
+        legend.title = element_blank(),
+        axis.text.y = element_text(size=33.5, color="navy", face="bold"),
+        axis.text.x = element_blank(),
+        axis.ticks.x= element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size=45, color="navy"),
+        legend.position = "right",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_blank(),
+        plot.margin = unit(c(1.15,0.25,0,0.75), "cm"))+
+  guides(fill = guide_legend(byrow = TRUE))
+
+
+pAvg.Eps_C16.0_sterol <- ggplot() + 
+  geom_boxplot(data=epsilon_C16_sterol_phyto_year, aes(x=index, y=eps_C16_sterol_phyto_year, fill= variable),
+               middle= mean(epsilon_C16_sterol_phyto_year$eps_C16_sterol_phyto_year), coef=0, width=0.25, 
+               color="slateblue", outlier.shape=NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[6:6,3:4], 
+                aes(x=-0.775, y= mean_eps_C16_sterol_phyto, xmin=-0.775, xmax=-0.775,
+                    ymin=(mean_eps_C16_sterol_phyto-sd_eps_C16_sterol_phyto),
+                    ymax=(mean_eps_C16_sterol_phyto+sd_eps_C16_sterol_phyto)),
+                color="slateblue", width=0.25)+
+  geom_boxplot(data=epsilon_C16_sterol_mix_year, aes(x=index, y=eps_C16_sterol_mix_year, fill= variable),
+               middle= mean(epsilon_C16_sterol_mix_year$eps_C16_sterol_mix_year), coef=0, width=0.25, 
+               color="plum3",outlier.shape=NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[6:6,3:4], 
+                aes(x=-0.225, y= mean_eps_C16_sterol_mix, xmin=-0.225, xmax=-0.225,
+                    ymin=(mean_eps_C16_sterol_mix-sd_eps_C16_sterol_mix),
+                    ymax=(mean_eps_C16_sterol_mix+sd_eps_C16_sterol_mix)),
+                color="plum3", width=0.25)+
+  geom_point(data=epsilon_C16.0_sterol_year, aes(x = index, y = value, shape=variable),size=9,
+             fill="violetred",color="black")+
+  scale_fill_manual(labels=c(eps_C16_sterol_phyto_year= "phyto modeled",
+                             #expression(epsilon^{2}*""['C16:0/sterol phyto']~"modeled"),
+                             eps_C16_sterol_mix_year= "phyto&zoo modeled"),
+                    #expression(epsilon^{2}*""['C16:0/sterol phyto&micro']~"modeled")),
+                    values=c(eps_C16_sterol_phyto_year = "mediumpurple1" ,
+                             eps_C16_sterol_mix_year= "thistle1"),
+                    breaks= c("eps_C16_sterol_phyto_year", "eps_C16_sterol_mix_year"))+
+  scale_shape_manual(labels=c(epsilon_C16.0_sterol="measured"),
+                     #expression(epsilon^{2}*""['C16:0/sterol']~"measured")),
+                     values=c(epsilon_C16.0_sterol=23))+
+  ylab(expression(epsilon^{2}*""['C16:0/sterol']~("\u2030")))+ 
+  annotate("rect", xmin = 0.5 ,xmax = 1.5 , ymin = -Inf, ymax = +Inf, alpha=0.2, fill="lightblue2")+
+  annotate("rect", xmin = 1.5 ,xmax = 2.5 , ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="palegreen2")+
+  annotate("rect", xmin = 2.5 ,xmax = 3.5 , ymin = -Inf, ymax =  +Inf, alpha=0.12, fill="gold")+
+  annotate("rect", xmin = 3.5 ,xmax = 4.5, ymin = -Inf, ymax =  +Inf, alpha=0.15, fill="orange")+
+  annotate("rect", xmin = 4.5 ,xmax = 5.5 , ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="lightblue2")+
+  geom_point(data=epsilon_C16.0_sterol_seasons, aes(x = index, y = value), fill="violetred",size=9, shape=23)+  
+  geom_boxplot(data=epsilon_C16_sterol_phyto_winter2019, aes(x=index, y=eps_C16_sterol_phyto_winter2019), 
+               middle= mean(epsilon_C16_sterol_phyto_winter2019$eps_C16_sterol_phyto_winter2019), coef=0,
+               width=0.25, fill="mediumpurple1", color="slateblue", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[1:1,3:4], 
+                aes(x=0.725, y=mean_eps_C16_sterol_phyto ,xmin=0.725, xmax=0.725, 
+                    ymin=(mean_eps_C16_sterol_phyto-sd_eps_C16_sterol_phyto),
+                    ymax=(mean_eps_C16_sterol_phyto+sd_eps_C16_sterol_phyto)), color="slateblue", width=0.25)+
+  geom_boxplot(data=epsilon_C16_sterol_phyto_spring2019, aes(x=index, y=eps_C16_sterol_phyto_spring2019),
+               middle= mean(epsilon_C16_sterol_phyto_spring2019$eps_C16_sterol_phyto_spring2019), coef=0,
+               width=0.25, fill="mediumpurple1", color="slateblue", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[2:2,3:4], 
+                aes(x=1.725, y=mean_eps_C16_sterol_phyto ,xmin=1.725, xmax=1.725, 
+                    ymin=(mean_eps_C16_sterol_phyto-sd_eps_C16_sterol_phyto),
+                    ymax=(mean_eps_C16_sterol_phyto+sd_eps_C16_sterol_phyto)), color="slateblue", width=0.25)+
+  geom_boxplot(data=epsilon_C16_sterol_phyto_summer2019, aes(x=index, y=eps_C16_sterol_phyto_summer2019),
+               middle= mean(epsilon_C16_sterol_phyto_summer2019$eps_C16_sterol_phyto_summer2019), coef=0,
+               width=0.25,  fill="mediumpurple1", color="slateblue", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[3:3,3:4], 
+                aes(x=2.725, y=mean_eps_C16_sterol_phyto ,xmin=2.725, xmax=2.725, 
+                    ymin=(mean_eps_C16_sterol_phyto-sd_eps_C16_sterol_phyto),
+                    ymax=(mean_eps_C16_sterol_phyto+sd_eps_C16_sterol_phyto)), color="slateblue", width=0.25)+
+  geom_boxplot(data=epsilon_C16_sterol_phyto_autumn2019, aes(x=index, y=eps_C16_sterol_phyto_autumn2019),
+               middle=mean(epsilon_C16_sterol_phyto_autumn2019$eps_C16_sterol_phyto_autumn2019), coef=0,
+               width=0.25, fill="mediumpurple1", color="slateblue", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[4:4,3:4], 
+                aes(x=3.725, y=mean_eps_C16_sterol_phyto ,xmin=3.725, xmax=3.725, 
+                    ymin=(mean_eps_C16_sterol_phyto-sd_eps_C16_sterol_phyto),
+                    ymax=(mean_eps_C16_sterol_phyto+sd_eps_C16_sterol_phyto)), color="slateblue", width=0.25)+
+  geom_boxplot(data=epsilon_C16_sterol_phyto_winter2020, aes(x=index, y=eps_C16_sterol_phyto_winter2020),
+               middle= mean(epsilon_C16_sterol_phyto_winter2020$eps_C16_sterol_phyto_winter2020), coef=0,
+               width=0.25, fill="mediumpurple1", color="slateblue", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[5:5,3:4], 
+                aes(x=4.725, y=mean_eps_C16_sterol_phyto ,xmin=4.725, xmax=4.725, 
+                    ymin=(mean_eps_C16_sterol_phyto-sd_eps_C16_sterol_phyto),
+                    ymax=(mean_eps_C16_sterol_phyto+sd_eps_C16_sterol_phyto)), color="slateblue", width=0.25)+
+  geom_boxplot(data=epsilon_C16_sterol_mix_winter2019, aes(x=index, y=eps_C16_sterol_mix_winter2019), 
+               middle=mean(epsilon_C16_sterol_mix_winter2019$eps_C16_sterol_mix_winter2019), coef=0, width=0.25,
+               fill="thistle1", color="plum3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[1:1,3:4], 
+                aes(x=1.275, y=mean_eps_C16_sterol_mix ,xmin=1.275, xmax=1.275, 
+                    ymin=(mean_eps_C16_sterol_mix-sd_eps_C16_sterol_mix),
+                    ymax=(mean_eps_C16_sterol_mix+sd_eps_C16_sterol_mix)), color="plum3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_sterol_mix_spring2019, aes(x=index, y=eps_C16_sterol_mix_spring2019),  
+               middle=mean(epsilon_C16_sterol_mix_spring2019$eps_C16_sterol_mix_spring2019), coef=0, width=0.25,
+               fill="thistle1", color="plum3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[2:2,3:4], 
+                aes(x=2.275, y=mean_eps_C16_sterol_mix ,xmin=2.275, xmax=2.275, 
+                    ymin=(mean_eps_C16_sterol_mix-sd_eps_C16_sterol_mix),
+                    ymax=(mean_eps_C16_sterol_mix+sd_eps_C16_sterol_mix)), color="plum3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_sterol_mix_summer2019, aes(x=index, y=eps_C16_sterol_mix_summer2019),  
+               middle= mean(epsilon_C16_sterol_mix_summer2019$eps_C16_sterol_mix_summer2019), coef=0,
+               width=0.25, fill="thistle1", color="plum3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[3:3,3:4], 
+                aes(x=3.275, y=mean_eps_C16_sterol_mix ,xmin=3.275, xmax=3.275, 
+                    ymin=(mean_eps_C16_sterol_mix-sd_eps_C16_sterol_mix),
+                    ymax=(mean_eps_C16_sterol_mix+sd_eps_C16_sterol_mix)), color="plum3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_sterol_mix_autumn2019, aes(x=index, y=eps_C16_sterol_mix_autumn2019),  middle=
+                 mean(epsilon_C16_sterol_mix_autumn2019$eps_C16_sterol_mix_autumn2019), coef=0,
+               width=0.25,fill="thistle1", color="plum3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[4:4,3:4], 
+                aes(x=4.275, y=mean_eps_C16_sterol_mix ,xmin=4.275, xmax=4.275, 
+                    ymin=(mean_eps_C16_sterol_mix-sd_eps_C16_sterol_mix),
+                    ymax=(mean_eps_C16_sterol_mix+sd_eps_C16_sterol_mix)), color="plum3", width=0.25)+
+  geom_boxplot(data=epsilon_C16_sterol_mix_winter2020, aes(x=index, y=eps_C16_sterol_mix_winter2020),  
+               middle= mean(epsilon_C16_sterol_mix_winter2020$eps_C16_sterol_mix_winter2020), coef=0,
+               width=0.25, fill="thistle1", color="plum3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[5:5,3:4], 
+                aes(x=5.275, y=mean_eps_C16_sterol_mix ,xmin=5.275, xmax=5.275, 
+                    ymin=(mean_eps_C16_sterol_mix-sd_eps_C16_sterol_mix),
+                    ymax=(mean_eps_C16_sterol_mix+sd_eps_C16_sterol_mix)), color="plum3", width=0.25)+
+  annotate("text",x=-1.9,y=185,label="B", size=15, fontface=2, color="black")+
+  coord_cartesian(xlim=c(-1,5.25), ylim=c(-25,175),clip="off")+
+  scale_y_continuous(breaks=c(0,50,100,150))+
+  guides(shape = guide_legend(order=1))+
+  theme(axis.line.y = element_line(colour = "black"),
+        axis.line.x = element_blank(),
+        panel.background = element_blank(),
+        legend.key = element_blank(),
+        legend.text = element_text(size=30, color="black"),
+        legend.text.align = 0,
+        legend.spacing.y = unit(0.5, "cm"),
+        legend.title = element_blank(),
+        axis.text.y = element_text(size=33.5, color="violetred", face="bold"),
+        axis.text.x = element_blank(),
+        axis.ticks.x= element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size=45, color="violetred"),
+        legend.position = "right",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_blank(),
+        plot.margin = unit(c(0.15,0.25,0,0.75), "cm"))+
+  guides(fill = guide_legend(byrow = TRUE))
+
+
+pAvg.Eps_sterol_phytol <- ggplot() + 
+  geom_boxplot(data=epsilon_sterol_phytol_phyto_year, aes(x=index, y=eps_sterol_phytol_phyto_year, 
+                                                          fill= variable),
+               middle= mean(epsilon_sterol_phytol_phyto_year$eps_sterol_phytol_phyto_year), coef=0,
+               width=0.25, color="darkolivegreen4", outlier.shape=NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[6:6,5:6], aes(x=-0.775, y= mean_eps_sterol_phytol_phyto,
+                                                                   xmin=-0.775, xmax=-0.775,
+                                                                   ymin=(mean_eps_sterol_phytol_phyto-sd_eps_sterol_phytol_phyto),
+                                                                   ymax=(mean_eps_sterol_phytol_phyto+sd_eps_sterol_phytol_phyto)),
+                color="darkolivegreen4", width=0.25)+
+  geom_boxplot(data=epsilon_sterol_phytol_mix_year, aes(x=index, y=eps_sterol_phytol_mix_year, 
+                                                        fill= variable),
+               middle= mean(epsilon_sterol_phytol_mix_year$eps_sterol_phytol_mix_year), coef=0, width=0.25, 
+               color="yellow3",outlier.shape=NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[6:6,5:6], 
+                aes(x=-0.225, y= mean_eps_sterol_phytol_mix, xmin=-0.225, xmax=-0.225,
+                    ymin=(mean_eps_sterol_phytol_mix-sd_eps_sterol_phytol_mix),
+                    ymax=(mean_eps_sterol_phytol_mix+sd_eps_sterol_phytol_mix)),
+                color="yellow3", width=0.25)+
+  geom_point(data=epsilon_sterol_phytol_year, aes(x = index, y = value, shape=variable),size=9,
+             fill="springgreen4",color="black")+
+  scale_fill_manual(labels=c(eps_sterol_phytol_phyto_year= "phyto modeled",
+                             #expression(epsilon^{2}*""['sterol/phytol phyto']~"modeled"),
+                             eps_sterol_phytol_mix_year= "phyto&zoo modeled"),
+                    #expression(epsilon^{2}*""['sterol/phytol phyto&micro']~"modeled")),
+                    values=c(eps_sterol_phytol_phyto_year = "darkolivegreen3" ,
+                             eps_sterol_phytol_mix_year= "yellow2"),
+                    breaks= c("eps_sterol_phytol_phyto_year", "eps_sterol_phytol_mix_year"))+
+  scale_shape_manual(labels=c(epsilon_sterol_phytol= "measured"),
+                     #expression(epsilon^{2}*""['sterol/phytol']~"measured")),
+                     values=c(epsilon_sterol_phytol=23))+
+  ylab(expression(epsilon^{2}*""['sterol/phytol']~("\u2030")))+ 
+  annotate("rect", xmin = 0.5 ,xmax = 1.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="lightblue2")+
+  annotate("rect", xmin = 1.5 ,xmax = 2.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="palegreen2")+
+  annotate("rect", xmin = 2.5 ,xmax = 3.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.12, fill="gold")+
+  annotate("rect", xmin = 3.5 ,xmax = 4.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.15, fill="orange")+
+  annotate("rect", xmin = 4.5 ,xmax = 5.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="lightblue2")+
+  geom_point(data=epsilon_sterol_phytol_seasons, aes(x = index, y = value), fill="springgreen4",size=9,
+             shape=23)+  
+  geom_boxplot(data=epsilon_sterol_phytol_phyto_winter2019, aes(x=index, y=eps_sterol_phytol_phyto_winter2019), 
+               middle= mean(epsilon_sterol_phytol_phyto_winter2019$eps_sterol_phytol_phyto_winter2019), coef=0,
+               width=0.25, fill="darkolivegreen3", color="darkolivegreen4", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[1:1,5:6], 
+                aes(x=0.725, y=mean_eps_sterol_phytol_phyto ,xmin=0.725, xmax=0.725, 
+                    ymin=(mean_eps_sterol_phytol_phyto-sd_eps_sterol_phytol_phyto),
+                    ymax=(mean_eps_sterol_phytol_phyto+sd_eps_sterol_phytol_phyto)), color="darkolivegreen4",
+                width=0.25)+
+  geom_boxplot(data=epsilon_sterol_phytol_phyto_spring2019, aes(x=index, y=eps_sterol_phytol_phyto_spring2019),
+               middle= mean(epsilon_sterol_phytol_phyto_spring2019$eps_sterol_phytol_phyto_spring2019), coef=0,
+               width=0.25, fill="darkolivegreen3", color="darkolivegreen4", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[2:2,5:6], 
+                aes(x=1.725, y=mean_eps_sterol_phytol_phyto ,xmin=1.725, xmax=1.725, 
+                    ymin=(mean_eps_sterol_phytol_phyto-sd_eps_sterol_phytol_phyto),
+                    ymax=(mean_eps_sterol_phytol_phyto+sd_eps_sterol_phytol_phyto)), color="darkolivegreen4",
+                width=0.25)+
+  geom_boxplot(data=epsilon_sterol_phytol_phyto_summer2019, aes(x=index, y=eps_sterol_phytol_phyto_summer2019),
+               middle= mean(epsilon_sterol_phytol_phyto_summer2019$eps_sterol_phytol_phyto_summer2019), coef=0,
+               width=0.25,  fill="darkolivegreen3", color="darkolivegreen4", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[3:3,5:6], 
+                aes(x=2.725, y=mean_eps_sterol_phytol_phyto ,xmin=2.725, xmax=2.725, 
+                    ymin=(mean_eps_sterol_phytol_phyto-sd_eps_sterol_phytol_phyto),
+                    ymax=(mean_eps_sterol_phytol_phyto+sd_eps_sterol_phytol_phyto)), color="darkolivegreen4",
+                width=0.25)+
+  geom_boxplot(data=epsilon_sterol_phytol_phyto_autumn2019, aes(x=index, y=eps_sterol_phytol_phyto_autumn2019),
+               middle=mean(epsilon_sterol_phytol_phyto_autumn2019$eps_sterol_phytol_phyto_autumn2019), coef=0,
+               width=0.25, fill="darkolivegreen3", color="darkolivegreen4", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[4:4,5:6], 
+                aes(x=3.725, y=mean_eps_sterol_phytol_phyto ,xmin=3.725, xmax=3.725, 
+                    ymin=(mean_eps_sterol_phytol_phyto-sd_eps_sterol_phytol_phyto),
+                    ymax=(mean_eps_sterol_phytol_phyto+sd_eps_sterol_phytol_phyto)), color="darkolivegreen4",
+                width=0.25)+
+  geom_boxplot(data=epsilon_sterol_phytol_phyto_winter2020, aes(x=index, y=eps_sterol_phytol_phyto_winter2020),
+               middle= mean(epsilon_sterol_phytol_phyto_winter2020$eps_sterol_phytol_phyto_winter2020), coef=0,
+               width=0.25, fill="darkolivegreen3", color="darkolivegreen4", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_phyto[5:5,5:6], 
+                aes(x=4.725, y=mean_eps_sterol_phytol_phyto ,xmin=4.725, xmax=4.725, 
+                    ymin=(mean_eps_sterol_phytol_phyto-sd_eps_sterol_phytol_phyto),
+                    ymax=(mean_eps_sterol_phytol_phyto+sd_eps_sterol_phytol_phyto)), color="darkolivegreen4",
+                width=0.25)+
+  geom_boxplot(data=epsilon_sterol_phytol_mix_winter2019, aes(x=index, y=eps_sterol_phytol_mix_winter2019), 
+               middle=mean(epsilon_sterol_phytol_mix_winter2019$eps_sterol_phytol_mix_winter2019), coef=0,
+               width=0.25, fill="yellow2", color="yellow3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[1:1,5:6], 
+                aes(x=1.275, y=mean_eps_sterol_phytol_mix ,xmin=1.275, xmax=1.275, 
+                    ymin=(mean_eps_sterol_phytol_mix-sd_eps_sterol_phytol_mix),
+                    ymax=(mean_eps_sterol_phytol_mix+sd_eps_sterol_phytol_mix)), color="yellow3", width=0.25)+
+  geom_boxplot(data=epsilon_sterol_phytol_mix_spring2019, aes(x=index, y=eps_sterol_phytol_mix_spring2019),  
+               middle=mean(epsilon_sterol_phytol_mix_spring2019$eps_sterol_phytol_mix_spring2019), coef=0,
+               width=0.25,fill="yellow2", color="yellow3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[2:2,5:6], 
+                aes(x=2.275, y=mean_eps_sterol_phytol_mix ,xmin=2.275, xmax=2.275, 
+                    ymin=(mean_eps_sterol_phytol_mix-sd_eps_sterol_phytol_mix),
+                    ymax=(mean_eps_sterol_phytol_mix+sd_eps_sterol_phytol_mix)), color="yellow3", width=0.25)+
+  geom_boxplot(data=epsilon_sterol_phytol_mix_summer2019, aes(x=index, y=eps_sterol_phytol_mix_summer2019),  
+               middle= mean(epsilon_sterol_phytol_mix_summer2019$eps_sterol_phytol_mix_summer2019), coef=0,
+               width=0.25, fill="yellow2", color="yellow3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[3:3,5:6], 
+                aes(x=3.275, y=mean_eps_sterol_phytol_mix ,xmin=3.275, xmax=3.275, 
+                    ymin=(mean_eps_sterol_phytol_mix-sd_eps_sterol_phytol_mix),
+                    ymax=(mean_eps_sterol_phytol_mix+sd_eps_sterol_phytol_mix)), color="yellow3", width=0.25)+
+  geom_boxplot(data=epsilon_sterol_phytol_mix_autumn2019, aes(x=index, y=eps_sterol_phytol_mix_autumn2019), 
+               middle=mean(epsilon_sterol_phytol_mix_autumn2019$eps_sterol_phytol_mix_autumn2019), coef=0,
+               width=0.25,fill="yellow2", color="yellow3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[4:4,5:6], 
+                aes(x=4.275, y=mean_eps_sterol_phytol_mix ,xmin=4.275, xmax=4.275, 
+                    ymin=(mean_eps_sterol_phytol_mix-sd_eps_sterol_phytol_mix),
+                    ymax=(mean_eps_sterol_phytol_mix+sd_eps_sterol_phytol_mix)), color="yellow3", width=0.25)+
+  geom_boxplot(data=epsilon_sterol_phytol_mix_winter2020, aes(x=index, y=eps_sterol_phytol_mix_winter2020),  
+               middle= mean(epsilon_sterol_phytol_mix_winter2020$eps_sterol_phytol_mix_winter2020), coef=0,
+               width=0.25, fill="yellow2", color="yellow3", outlier.shape= NA)+
+  geom_errorbar(data= Avg.eps_lipid1.2_modeled_mix[5:5,5:6], 
+                aes(x=5.275, y=mean_eps_sterol_phytol_mix ,xmin=5.275, xmax=5.275, 
+                    ymin=(mean_eps_sterol_phytol_mix-sd_eps_sterol_phytol_mix),
+                    ymax=(mean_eps_sterol_phytol_mix+sd_eps_sterol_phytol_mix)), color="yellow3", width=0.25)+
+  annotate("text",x=-0.5,y=77.5,label="year", size=12,color="black", fontface="bold")+
+  annotate("text",x=1,y=77.5,label="winter", size=12,color="black", fontface="bold")+
+  annotate("text",x=2,y=77.5,label="spring", size=12,color="black", fontface="bold")+
+  annotate("text",x=3,y=77.5,label="summer", size=12,color="black", fontface="bold")+
+  annotate("text",x=4,y=77.5,label="autumn", size=12,color="black", fontface="bold")+
+  annotate("text",x=5,y=77.5,label="winter", size=12,color="black", fontface="bold")+
+  annotate("text",x=-1.9,y=310, label="C", size=15, fontface=2, color="black")+
+  coord_cartesian(xlim=c(-1,5.25),ylim=c(100,300),clip="off")+
+  scale_y_continuous(breaks=c(125,175,225,275))+
+  guides(shape = guide_legend(order=1))+
+  theme(axis.line.y = element_line(colour = "black"), 
+        axis.line.x = element_line(colour = "black"),
+        axis.ticks.x = element_blank(),
+        legend.key = element_blank(),
+        legend.text = element_text(size=30, color="black"),
+        legend.title = element_blank(),
+        legend.text.align = 0,
+        legend.spacing.y = unit(0.5, "cm"),
+        panel.background = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=33.5, color="springgreen4", face="bold"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size=45, color="springgreen4"),
+        legend.position = "right",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_blank(),
+        plot.margin = unit(c(0.15,0.25,2.35,0.75), "cm"))+
+  guides(fill = guide_legend(byrow = TRUE))
+
+Fig7 <- plot_grid(pAvg.Eps_C16.0_phytol, pAvg.Eps_C16.0_sterol, pAvg.Eps_sterol_phytol,
+          ncol=1, align="v", rel_heights = c(1.155,1.055,1.2)) 
+
+```
+
+## Fig.7
+
+```{r, fig.width = 23.5, fig.height = 20, echo=FALSE}
+
+plot(Fig7)
+
+```
+
+## testing if modeled epsilon lipid1/2 phyto vs. all are significantly different from each other
+
+### t.test(x, y, paired = TRUE, alternative = "two.sided")
+
+```{r}
+
+#epsilon C16:0/phytol
+
+#2019-2020
+
+t.test(epsilon_C16_phytol_phyto_year$eps_C16_phytol_phyto_year, epsilon_C16_phytol_mix_year$eps_C16_phytol_mix_year, 
+       paired = TRUE, alternative = "two.sided") 
+
+#winter 2019
+
+t.test(epsilon_C16_phytol_phyto_winter2019$eps_C16_phytol_phyto_winter2019, 
+       epsilon_C16_phytol_mix_winter2019$eps_C16_phytol_mix_winter2019, 
+       paired = TRUE, alternative = "two.sided") 
+
+
+#spring 2019
+
+t.test(epsilon_C16_phytol_phyto_spring2019$eps_C16_phytol_phyto_spring2019, 
+       epsilon_C16_phytol_mix_spring2019$eps_C16_phytol_mix_spring2019, 
+       paired = TRUE, alternative = "two.sided") 
+
+#summer 2019
+
+t.test(epsilon_C16_phytol_phyto_summer2019$eps_C16_phytol_phyto_summer2019, 
+       epsilon_C16_phytol_mix_summer2019$eps_C16_phytol_mix_summer2019, 
+       paired = TRUE, alternative = "two.sided") 
+
+#autumn 2019
+
+t.test(epsilon_C16_phytol_phyto_autumn2019$eps_C16_phytol_phyto_autumn2019, 
+       epsilon_C16_phytol_mix_autumn2019$eps_C16_phytol_mix_autumn2019, 
+       paired = TRUE, alternative = "two.sided") 
+
+
+#winter 2020
+
+t.test(epsilon_C16_phytol_phyto_winter2020$eps_C16_phytol_phyto_winter2020, 
+       epsilon_C16_phytol_mix_winter2020$eps_C16_phytol_mix_winter2020, 
+       paired = TRUE, alternative = "two.sided") 
+
+
+#epsilon C16:0/sterol
+
+#2019-2020
+
+t.test(epsilon_C16_sterol_phyto_year$eps_C16_sterol_phyto_year, epsilon_C16_sterol_mix_year$eps_C16_sterol_mix_year, 
+       paired = TRUE, alternative = "two.sided") 
+
+#winter 2019
+
+t.test(epsilon_C16_sterol_phyto_winter2019$eps_C16_sterol_phyto_winter2019, 
+       epsilon_C16_sterol_mix_winter2019$eps_C16_sterol_mix_winter2019, 
+       paired = TRUE, alternative = "two.sided") 
+
+
+#spring 2019
+
+t.test(epsilon_C16_sterol_phyto_spring2019$eps_C16_sterol_phyto_spring2019, 
+       epsilon_C16_sterol_mix_spring2019$eps_C16_sterol_mix_spring2019, 
+       paired = TRUE, alternative = "two.sided") 
+
+#summer 2019
+
+t.test(epsilon_C16_sterol_phyto_summer2019$eps_C16_sterol_phyto_summer2019, 
+       epsilon_C16_sterol_mix_summer2019$eps_C16_sterol_mix_summer2019, 
+       paired = TRUE, alternative = "two.sided") 
+
+#autumn 2019
+
+t.test(epsilon_C16_sterol_phyto_autumn2019$eps_C16_sterol_phyto_autumn2019, 
+       epsilon_C16_sterol_mix_autumn2019$eps_C16_sterol_mix_autumn2019, 
+       paired = TRUE, alternative = "two.sided") 
+
+
+#winter 2020
+
+t.test(epsilon_C16_sterol_phyto_winter2020$eps_C16_sterol_phyto_winter2020, 
+       epsilon_C16_sterol_mix_winter2020$eps_C16_sterol_mix_winter2020, 
+       paired = TRUE, alternative = "two.sided") 
+
+
+#epsilon sterol/phytol
+
+#2019-2020
+
+t.test(epsilon_sterol_phytol_phyto_year$eps_sterol_phytol_phyto_year, epsilon_sterol_phytol_mix_year$eps_sterol_phytol_mix_year, 
+       paired = TRUE, alternative = "two.sided") 
+
+#winter 2019
+
+t.test(epsilon_sterol_phytol_phyto_winter2019$eps_sterol_phytol_phyto_winter2019, 
+       epsilon_sterol_phytol_mix_winter2019$eps_sterol_phytol_mix_winter2019, 
+       paired = TRUE, alternative = "two.sided") 
+
+
+#spring 2019
+
+t.test(epsilon_sterol_phytol_phyto_spring2019$eps_sterol_phytol_phyto_spring2019, 
+       epsilon_sterol_phytol_mix_spring2019$eps_sterol_phytol_mix_spring2019, 
+       paired = TRUE, alternative = "two.sided") 
+
+#summer 2019
+
+t.test(epsilon_sterol_phytol_phyto_summer2019$eps_sterol_phytol_phyto_summer2019, 
+       epsilon_sterol_phytol_mix_summer2019$eps_sterol_phytol_mix_summer2019, 
+       paired = TRUE, alternative = "two.sided") 
+
+#autumn 2019
+
+t.test(epsilon_sterol_phytol_phyto_autumn2019$eps_sterol_phytol_phyto_autumn2019, 
+       epsilon_sterol_phytol_mix_autumn2019$eps_sterol_phytol_mix_autumn2019, 
+       paired = TRUE, alternative = "two.sided") 
+
+
+#winter 2020
+
+t.test(epsilon_sterol_phytol_phyto_winter2020$eps_sterol_phytol_phyto_winter2020, 
+       epsilon_sterol_phytol_mix_winter2020$eps_sterol_phytol_mix_winter2020, 
+       paired = TRUE, alternative = "two.sided") 
+

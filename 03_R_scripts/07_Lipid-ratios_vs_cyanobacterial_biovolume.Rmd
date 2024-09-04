@@ -1,0 +1,278 @@
+---
+title: "07-Lipid-ratios_vs_cyanobacterial-biovolume"
+author: "Antonia_Klatt"
+date: "2024-08-01"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+#loading packages
+
+library(readr)
+library(ggplot2)
+library(reshape2)
+library(cowplot)
+library(grid)
+library(gridExtra)
+
+
+Sys.setlocale("LC_ALL", "English")
+
+#import data
+
+## lipid ratios (phytol:sterol ratios; C18:C16 ratios (FA))
+
+lipid_ratios <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\Lipid_ratios_ROT19-02.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+## phytoplankton relative biovolume 
+
+phytoplankton_rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\phytoplankton_rel_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+phytoplankton_total.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\phyto_microplankton_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+
+#note: data frames include two different depths: surface water (A) and chlorophyll maximum depth (B)
+
+
+#merge data frames
+
+lipid_ratios_cyano_relBio <- cbind.data.frame(lipid_ratios, phytoplankton_rel.bioVol$cyanobacteria_relBio)
+
+colnames(lipid_ratios_cyano_relBio) <- c("sample", "sumC18_C16.0_ratio", "phytol_sterol_ratio", "cyano_relBio")
+
+
+#separating surface water (surface) and chlorophyll maximum depth (chlorMax)
+
+lipid_ratios_cyano_relBio_surface <- lipid_ratios_cyano_relBio[1:25,]
+
+lipid_ratios_cyano_relBio_chlorMax <- lipid_ratios_cyano_relBio[26:49,]
+
+
+#Checking correlations between lipid ratios and cyanobacterial biovolume (R2 values)
+
+summary(lm(cyano_relBio ~ phytol_sterol_ratio, data=lipid_ratios_cyano_relBio)) 
+
+summary(lm(cyano_relBio ~ sumC18_C16.0_ratio, data=lipid_ratios_cyano_relBio)) 
+
+
+#check correlations when excluding autumnal mixing event -> mixing from 191009 to 191204 #rows: 17-21; 41-45
+
+lipid_ratios_cyano_relBio_woMix <- rbind.data.frame(lipid_ratios_cyano_relBio[1:16,],
+                                                    lipid_ratios_cyano_relBio[22:40,],
+                                                    lipid_ratios_cyano_relBio[46:49,])
+
+summary(lm(cyano_relBio ~ phytol_sterol_ratio, data=lipid_ratios_cyano_relBio_woMix)) 
+
+summary(lm(cyano_relBio ~ sumC18_C16.0_ratio, data=lipid_ratios_cyano_relBio_woMix)) 
+
+
+#setting sampling dates
+
+lipidRatio_datesA <- c("2019-01-30","2019-02-13", "2019-02-27", "2019-03-13", "2019-03-27", "2019-04-10", "2019-04-24",
+                       "2019-05-08", "2019-05-22", "2019-06-04", "2019-06-19", "2019-07-17", "2019-07-30", "2019-08-14",
+                       "2019-09-11", "2019-09-25", "2019-10-09", "2019-10-23", "2019-11-06","2019-11-20", "2019-12-04",
+                       "2019-12-18", "2020-01-07", "2020-01-21", "2020-02-06")
+
+rownames(lipid_ratios_cyano_relBio_surface) <- lipidRatio_datesA
+
+lipid_ratios_cyano_relBio_surface$date <- as.Date(rownames(lipid_ratios_cyano_relBio_surface), "%Y-%m-%d")
+
+
+lipidRatio_datesB <- c("2019-01-30", "2019-02-13", "2019-03-13","2019-03-27", "2019-04-10", "2019-04-24", "2019-05-08",
+                       "2019-05-22", "2019-06-04", "2019-06-19", "2019-07-17", "2019-07-30", "2019-08-14", "2019-09-11",
+                       "2019-09-25", "2019-10-09", "2019-10-23", "2019-11-06","2019-11-20", "2019-12-04","2019-12-18",
+                       "2020-01-07", "2020-01-21", "2020-02-06")
+
+rownames(lipid_ratios_cyano_relBio_chlorMax) <- lipidRatio_datesB
+
+lipid_ratios_cyano_relBio_chlorMax$date <- as.Date(rownames(lipid_ratios_cyano_relBio_chlorMax), "%Y-%m-%d")
+
+
+#reshape data frames
+
+cyano_relBioA <- melt(subset(lipid_ratios_cyano_relBio_surface, select= c(date,cyano_relBio)),id.var="date")
+
+phytol_sterol_ratioA <- melt(subset(lipid_ratios_cyano_relBio_surface, select= c(date,phytol_sterol_ratio)),id.var="date")
+
+C18_C16_ratioA<- melt(subset(lipid_ratios_cyano_relBio_surface, select= c(date,sumC18_C16.0_ratio)),id.var="date")
+
+
+cyano_relBioB <- melt(subset(lipid_ratios_cyano_relBio_chlorMax, select= c(date,cyano_relBio)),id.var="date")
+
+phytol_sterol_ratioB <- melt(subset(lipid_ratios_cyano_relBio_chlorMax, select= c(date,phytol_sterol_ratio)),id.var="date")
+
+C18_C16_ratioB<- melt(subset(lipid_ratios_cyano_relBio_chlorMax, select= c(date,sumC18_C16.0_ratio)),id.var="date")
+
+```
+
+## plotting cyanobacterial biovolume, phytol:sterol ratios and C18:C16 ratios
+
+```{r}
+
+# surface water
+
+pcyano_surface <- ggplot() + ggtitle("1 m depth", subtitle= "1 m depth")+
+  geom_line(data= cyano_relBioA, aes(x=date,y=value),color= "cyan4",  linewidth= 1.15)+ 
+  geom_point(data=cyano_relBioA, aes(x=date,y=value), fill= "cyan4", shape= 23, size=3,alpha=0.8)+
+  annotate("text",y= 132, x= as.Date("2018-11-30"),label="A", size=15, fontface=2, color="black")+
+  coord_cartesian(ylim=c(0,100),x=as.Date(c("2019-01-30", "2020-02-06")), clip="off")+
+  ylab(expression(atop(italic("Cyanophyceae"), "(% algal biovolume)"))) + xlab(NULL)+
+  theme(axis.line = element_line(colour = "black"),
+        plot.title= element_text(size=35, face= "bold"),
+        plot.subtitle= element_text(size=30, color="white"),
+        panel.background = element_blank(),
+        axis.line.x =element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=32.5,color='cyan4', face="bold"),
+        axis.title.y = element_text(size=32.5,color='cyan4', face="bold"),
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size = 30, color= 'cyan4', face="bold"),
+        plot.margin = unit(c(1.5,0,1.35,0.5), "cm"))
+
+
+pPhySt_surface <- ggplot() + 
+  geom_line(data=phytol_sterol_ratioA [!is.na(phytol_sterol_ratioA$value),], aes(x=date,y=value),color= "forestgreen",
+            linewidth= 1.15)+
+  geom_point(data=phytol_sterol_ratioA[!is.na(phytol_sterol_ratioA$value),] , aes(x=date,y=value), fill= "forestgreen", 
+             shape= 23, size=3,alpha=0.8)+
+  ylab("phytol:sterol ratio") + xlab(NULL)+ ylim(0,1)+
+  theme(panel.background = element_blank(),
+        axis.line.x =element_blank(),
+        axis.line.y =element_line(color='black'),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y.left = element_text(size=32.5,color="forestgreen", face="bold"),
+        axis.title.y.left = element_text(size=32.5,color="forestgreen",margin=margin(r=25)),
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size = 30, color= 'forestgreen', face="bold"),
+        plot.margin = unit(c(0,0,1.35,0.5), "cm"))
+
+
+pC18C16_surface <- ggplot() + 
+  geom_line(data=C18_C16_ratioA[!is.na(C18_C16_ratioA$value),], aes(x=date,y = value),color= "indianred3",  linewidth= 1.15)+
+  geom_point(data=C18_C16_ratioA[!is.na(C18_C16_ratioA$value),], aes(x=date,y=value), fill= "indianred3", shape= 23,
+             size=3,alpha=0.8)+
+  annotate("text",y= -0.4, x= as.Date("2019-12-20"),label=expression(bold(R^2~"= 0.22"~"***")),
+           size=14, fontface=2, color="forestgreen")+
+  coord_cartesian(ylim=c(0,1),x=as.Date(c("2019-01-30", "2020-02-06")), clip="off")+
+  ylab("C18:C16 ratio") + xlab(NULL)+
+  theme(panel.background = element_blank(),
+        axis.line.x =element_line(color="black"),
+        axis.text.x = element_text(size=32.5, color= 'black', face= 'bold'),
+        axis.line.y.left =element_line(color='black'),
+        axis.text.y.left = element_text(size=32.5, color= "indianred3", face= 'bold'),
+        axis.title.y.left = element_text(size=32.5, color= "indianred3",margin=margin(r=25)),
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size=1, color= 'white', face= 'bold'),
+        plot.margin = unit(c(0,0,3.15,0.5), "cm"))
+
+
+pcyano_lipid_ratio_surface <- plot_grid(pcyano_surface, pPhySt_surface, pC18C16_surface, ncol=1, 
+                                        rel_heights = c(1.45,1.05,1.33),align="v", axis='lr')
+
+
+#chlorophyll maximum depth
+
+pcyano_chlorMax <- ggplot() + ggtitle("chlorophyll maximum depth", subtitle= "chlorophyll maximum depth")+
+  geom_line(data=cyano_relBioB, aes(x=date,y=value),color= "cyan4",  linewidth= 1.15)+
+  geom_point(data=cyano_relBioB, aes(x=date,y=value, fill= variable), shape= 23, size=3,alpha=0.8)+
+  scale_fill_manual(labels=c("cyano_relBio"= expression(atop(cyanobacteria,("%"~algal~biovolume)))),
+                    values=c(cyano_relBio="cyan4"))+
+  annotate("text",y= 132, x= as.Date("2018-11-25"),label="B", size=15, fontface=2, color="black")+
+  coord_cartesian(ylim=c(0,100),x=as.Date(c("2019-01-30", "2020-02-06")), clip="off")+
+  ylab(NULL) + xlab(NULL)+
+  theme(panel.background = element_blank(),
+        plot.title=element_text(size=35, color= 'black', face= 'bold'),
+        plot.subtitle=element_text(size=30, color= 'white'),
+        legend.position = "none",
+        #legend.position = "right",
+        #legend.key = element_blank(),
+        #legend.title = element_blank(),
+        #legend.text= element_text(size=30, color='black'),
+        axis.line.x =element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.line.y.left =element_line(color='black'),
+        axis.text.y.left = element_text(size=32.5, color= 'cyan4', face= 'bold'),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size=1, color= 'white', face= 'bold'),
+        plot.margin = unit(c(1.5,0.5,1.35,0.5), "cm"))
+
+
+pPhySt_chlorMax <- ggplot() + 
+  geom_line(data=phytol_sterol_ratioB[!is.na(phytol_sterol_ratioB$value),] , aes(x=date,y=value),color= "forestgreen",
+            linewidth= 1.15)+
+  geom_point(data=phytol_sterol_ratioB[!is.na(phytol_sterol_ratioB$value),] , aes(x=date,y=value, fill= variable), shape= 23,
+             size=3,alpha=0.8)+
+  scale_fill_manual(labels=c("phytol_sterol_ratio"= "phytol:sterol ratio"),
+                    values=c(phytol_sterol_ratio="forestgreen"))+
+  coord_cartesian(ylim=c(0,1),x=as.Date(c("2019-01-30", "2020-02-06")), clip="off")+
+  ylab(NULL) + xlab(NULL)+
+  theme(panel.background = element_blank(),
+        legend.position = "none",
+        #legend.position = "right",
+        #legend.key = element_blank(),
+        #legend.title = element_blank(),
+        #legend.text= element_text(size=30, color='black'),
+        axis.line.x =element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.line.y.left =element_line(color='black'),
+        axis.text.y.left = element_text(size=32.5, color= "forestgreen", face= 'bold'),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size=1, color= 'white', face= 'bold'),
+        plot.margin = unit(c(0,0.5,1.35,0.5), "cm"))
+
+
+pC18C16_chlorMax <- ggplot() + 
+  geom_line(data=C18_C16_ratioB[!is.na(C18_C16_ratioB$value),], aes(x=date,y = value),color= "indianred3",  linewidth= 1.15)+
+  geom_point(data=C18_C16_ratioB[!is.na(C18_C16_ratioB$value),], aes(x=date,y=value, fill= variable), shape= 23,
+             size=3,alpha=0.8)+
+  scale_fill_manual(labels=c("sumC18_C16.0_ratio"= "C18:C16 ratio"),
+                    values=c(sumC18_C16.0_ratio="indianred3"))+
+  coord_cartesian(ylim=c(0,1),x=as.Date(c("2019-01-30", "2020-02-06")), clip="off")+
+  annotate("text",y= -0.4, x= as.Date("2019-02-01"),label=expression(bold(R^2~"= 0.15"~"**")),
+           size=14, fontface=2, color="indianred3")+
+  geom_rect(aes(xmin = as.Date("2017-11-05"), xmax = as.Date("2020-02-15"), ymin = -0.55, ymax = -0.275),
+            fill = "transparent", color = "gray70", linewidth=0.75)+ 
+  ylab(NULL) + xlab(NULL)+ 
+  theme(panel.background = element_blank(),
+        legend.position = "none",
+        #legend.position = "right",
+        #legend.key = element_blank(),
+        #legend.title = element_blank(),
+        #legend.text= element_text(size=30, color='black'),
+        axis.line.x =element_line(color="black"),
+        axis.text.x = element_text(size=32.5,color='black', face="bold"),
+        axis.line.y.left =element_line(color='black'),
+        axis.text.y.left = element_text(size=32.5, color= 'indianred3', face= 'bold'),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size = 30, color= 'indianred3', face="bold"),
+        plot.margin = unit(c(0,0.5,3.15,0.5), "cm"))
+
+pcyano_lipid_ratio_chlorMax <- plot_grid(pcyano_chlorMax, pPhySt_chlorMax, pC18C16_chlorMax, ncol=1, align="v",
+                                         rel_heights=c(1.45,1.05,1.33), axis='lr')
+
+Fig8 <- plot_grid(pcyano_lipid_ratio_surface, pcyano_lipid_ratio_chlorMax, ncol=2,rel_widths = c(1.05,1), align="h")
+
+```
+
+## Fig. 8
+
+```{r, fig.width = 25, fig.height = 15, echo=FALSE}
+
+plot (Fig8)
+
+```

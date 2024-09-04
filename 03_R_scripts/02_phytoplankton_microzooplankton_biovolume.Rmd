@@ -1,0 +1,178 @@
+---
+title: "02-phytoplankton_microzooplankton_biovolume"
+author: "Antonia_Klatt"
+date: "2024-07-31"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+#loading packages
+
+library(readr)
+library(ggplot2)
+library(reshape2)
+library(cowplot)
+
+Sys.setlocale("LC_ALL", "English")
+
+#Import biovolume data
+
+phyto_zoo_bioVolume <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\phyto_microzooplankton_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+#note: data frame includes two different depths: surface water (A) and chlorophyll maximum depth (B)
+
+#separating surface water and chlorophyll maximum depth
+
+phytoBio_surface <- phyto_zoo_bioVolume[1:25,2:7]
+zooBio_surface <- phyto_zoo_bioVolume[1:25,8:10]
+
+
+phytoBio_chlorMax <- phyto_zoo_bioVolume[26:49,2:7]
+zooBio_chlorMax <- phyto_zoo_bioVolume[26:49,8:10]
+
+
+
+#setting dates
+dates_surface <- c("2019-01-30", "2019-02-13", "2019-02-27", "2019-03-13" , "2019-03-27", "2019-04-10" ,"2019-04-24" ,"2019-05-08",
+            "2019-05-22", "2019-06-04" ,"2019-06-19", "2019-07-17" , "2019-07-29", "2019-08-14",
+            "2019-09-11", "2019-09-25", "2019-10-09", "2019-10-23", "2019-11-06", "2019-11-20", 
+            "2019-12-04", "2019-12-18",
+            "2020-01-07", "2020-01-21", "2020-02-06")
+
+rownames(phytoBio_surface) <- dates_surface
+rownames(zooBio_surface) <- dates_surface
+
+
+phytoBio_surface$date <- as.Date(rownames(phytoBio_surface), "%Y-%m-%d")
+zooBio_surface$date <- as.Date(rownames(zooBio_surface), "%Y-%m-%d")
+
+
+Phyto_surface <- melt(phytoBio_surface, id.vars="date", measure.vars = c("cyanobacteria_um3L",  "green.algae_um3L", "Chrysophyta_um3L",
+                                                            "Diatoms_um3L", "Dinoflagellates_um3L", "Cryptophyceae_um3L"))
+
+Zoo_surface  <- melt(zooBio_surface, id.vars="date", measure.vars = c("Ciliata_um3L","Rotifera_um3L", "Gymnodinium_helveticum_um3L"))
+
+
+
+dates_chlorMax <- c("2019-01-30", "2019-02-13",  "2019-03-13" , "2019-03-27", "2019-04-10" ,"2019-04-24" ,"2019-05-08",
+            "2019-05-22", "2019-06-04" ,"2019-06-19", "2019-07-17" , "2019-07-29", "2019-08-14",
+            "2019-09-11", "2019-09-25", "2019-10-09", "2019-10-23", "2019-11-06", "2019-11-20", 
+            "2019-12-04", "2019-12-18",
+            "2020-01-07", "2020-01-21", "2020-02-06")                              
+
+rownames(phytoBio_chlorMax) <- dates_chlorMax
+rownames(zooBio_chlorMax) <- dates_chlorMax
+
+phytoBio_chlorMax$date <- as.Date(rownames(phytoBio_chlorMax), "%Y-%m-%d")
+zooBio_chlorMax$date <- as.Date(rownames(zooBio_chlorMax), "%Y-%m-%d")
+
+
+Phyto_chlorMax <- melt(phytoBio_chlorMax, id.vars="date", measure.vars = c("cyanobacteria_um3L",  "green.algae_um3L", "Chrysophyta_um3L",
+                                                            "Diatoms_um3L", "Dinoflagellates_um3L", "Cryptophyceae_um3L"))
+
+Zoo_chlorMax <- melt(zooBio_chlorMax, id.vars="date", measure.vars = c("Ciliata_um3L","Rotifera_um3L", "Gymnodinium_helveticum_um3L"))
+
+```
+
+## plotting phytoplankton and microzooplankton biovolume
+
+```{r}
+
+#Fig. 3
+
+##surface water
+
+pbioVol_surface <-ggplot()+
+  ggtitle("1 m depth", subtitle= "1 m depth")+
+  geom_area(data=Zoo_surface, aes(x = date, y=value, fill= variable), alpha=0.275)+
+  geom_line(data=Phyto_surface, aes(x = date, y=value, color= variable),linewidth=1.175)+
+  annotate("text",y= 7.05e+09, x= as.Date("2018-11-10"),label="A", size=15, fontface=2, color="black")+
+  coord_cartesian(ylim=c(0,6e+09), x=as.Date(c("2019-01-30", "2020-02-06")),clip="off")+
+  scale_fill_manual(labels= c(Gymnodinium_helveticum_um3L= expression(italic("Gymnodinium helveticum")), 
+                              Ciliata_um3L="Ciliata", Rotifera_um3L= "Rotifera"),
+                    values=c(Gymnodinium_helveticum_um3L= "orchid", Ciliata_um3L= "lightskyblue3", Rotifera_um3L= "yellow3"),
+                    name= "microzooplankton",
+                    breaks= c("Ciliata_um3L", "Gymnodinium_helveticum_um3L", "Rotifera_um3L"))+
+  scale_color_manual(labels=c(cyanobacteria_um3L=expression(italic("Cyanophyceae")), 
+                              green.algae_um3L= "green algae", 
+                              Chrysophyta_um3L= expression(italic("Chrysophyceae")), 
+                              Diatoms_um3L= expression(italic("Bacillariophyceae")),  
+                              Dinoflagellates_um3L= expression(italic("Dinophyceae")), 
+                              Cryptophyceae_um3L= expression(italic("Cryptophyceae"))), 
+                     values= c(cyanobacteria_um3L="cyan4", green.algae_um3L="green3", Chrysophyta_um3L="darkgoldenrod1",
+                               Diatoms_um3L= "gray65" , Dinoflagellates_um3L= "salmon", Cryptophyceae_um3L= "maroon4"),
+                     name= "phytoplankton",
+                     breaks= c("Diatoms_um3L", "Chrysophyta_um3L","Cryptophyceae_um3L", "cyanobacteria_um3L", 
+                               "Dinoflagellates_um3L", "green.algae_um3L"))+
+  ylab(expression("biovolume"~(mu*m^{3}/L))) + xlab(NULL)+ 
+  theme(axis.line = element_line(colour = "black"),
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        axis.text.x = element_text(face='bold', color="black", size=30),
+        axis.text.y = element_text(face='bold', color='black', size=30),
+        legend.position= "none",
+        plot.title = element_text(color="black", face='bold', size=35),
+        plot.subtitle = element_text(color="white", size=15),
+        strip.placement = "outside",
+        strip.background = element_blank(),
+        axis.title.y = element_text(color='black', size = 30),
+        plot.margin = unit(c(1,0.55,0.25,0.3), "cm"))
+
+plegend <- get_legend(pbioVol_surface+ theme(legend.title = element_text(size=30, face= "bold"),
+                             legend.position= "bottom",
+                             legend.background=element_blank(),
+                             legend.key=element_rect(fill="white"),
+                             legend.box.background= element_rect(fill= "white", color="black"),
+                             legend.text=element_text(size=30))+
+                             guides(colour = guide_legend(title.position="top", override.aes = list(linewidth=3), nrow=2),
+                                    linetype = guide_legend(override.aes = list(size = 4)),
+                                    fill=guide_legend(title.position="top")))
+
+##chlorophyll maximum depth
+
+pbioVol_chlorMax <- ggplot()+
+  ggtitle("chlorophyll maximum depth", subtitle= "chlorophyll maximum depth")+
+  geom_area(data=zooBio_chlorMax, aes(x = date, y=Gymnodinium_helveticum_um3L), fill="orchid" , alpha=0.275)+
+  geom_area(data=zooBio_chlorMax, aes(x = date, y=Ciliata_um3L), fill="lightskyblue3" , alpha=0.275)+
+  geom_area(data=zooBio_chlorMax, aes(x = date, y=Rotifera_um3L), fill="yellow3" , alpha=0.275)+  
+  geom_line(data=phytoBio_chlorMax, aes(x = date, y=cyanobacteria_um3L),color="cyan4", linewidth=1.175)+
+  geom_line(data=phytoBio_chlorMax, aes(x = date, y=green.algae_um3L),color="green3", linewidth=1.175)+
+  geom_line(data=phytoBio_chlorMax, aes(x = date, y=Chrysophyta_um3L),color="darkgoldenrod1", linewidth=1.175)+
+  geom_line(data=phytoBio_chlorMax, aes(x = date, y=Diatoms_um3L),color="gray65", linewidth=1.175)+
+  geom_line(data=phytoBio_chlorMax, aes(x = date, y=Dinoflagellates_um3L),color="salmon", linewidth=1.175)+
+  geom_line(data=phytoBio_chlorMax, aes(x = date, y=Cryptophyceae_um3L),color="maroon4", linewidth=1.175)+
+  annotate("text",y= 7.05e+09, x= as.Date("2018-11-12"),label="B", size=15, fontface=2, color="black")+
+  coord_cartesian(ylim=c(0,6e+09), x=as.Date(c("2019-01-30", "2020-02-06")),clip="off")+
+  ylab(NULL) + xlab(NULL)+ 
+  theme(axis.line = element_line(colour = "black"),
+        panel.background = element_blank(),
+        axis.text.x = element_text(face='bold', color='black', size=30),
+        axis.text.y = element_text(face='bold', color='black', size=30),
+        legend.position= "none",
+        plot.title = element_text(color="black", face='bold', size=35),
+        plot.subtitle = element_text(color="white", size=15),
+        strip.placement = "outside",
+        strip.background = element_blank(),
+        axis.title.y = element_text(color='black', size = 30),
+        plot.margin = unit(c(1,0.25,0.25,0.25), "cm"))+
+  guides(fill = guide_legend(title.position="top"))
+
+pbioVol <- plot_grid(pbioVol_surface, pbioVol_chlorMax, ncol=2, rel_widths =c(1.05,1), align="h", axis="lr") 
+
+Fig3 <- plot_grid(pbioVol, plegend, ncol=1, rel_heights=c(1,0.25)) 
+
+```
+
+## Fig.3
+
+```{r, fig.width = 25, fig.height = 10, echo=FALSE}
+
+Fig3 <- plot_grid(pbioVol, plegend, ncol=1, rel_heights=c(1,0.25)) 
+
+plot(Fig3)
+
+
+```
+

@@ -1,0 +1,1419 @@
+---
+title: "05_biweekly_epsilon-Lipid1-Lipid2_modeling"
+author: "Antonia_Klatt"
+date: "2024-08-01"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+Sys.setlocale("LC_ALL", "English")
+
+#loading packages
+
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+
+
+#import data (this study)
+
+## epsilon lipid1/lipid2 values
+
+epsilon_lipid1.2 <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\epsilon_lipid1_lipid2_ROT19.csv",
+                              header = TRUE , sep = ";" , row.names=  1, stringsAsFactors = FALSE, na.strings = "#NV")
+
+## phytoplankton relative biovolume 
+
+phytoplankton_rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\phytoplankton_rel_biovolume_ROT19.csv", header = TRUE , sep = ";" , row.names=  1, stringsAsFactors = FALSE, na.strings = "#NV")
+
+## phytoplankton & microzooplankton relative biovolume 
+
+phyto.microplankton_rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\phyto_microplankton_rel_biovolume_ROT19.csv", header = TRUE , sep = ";" , row.names=  1, stringsAsFactors = FALSE, na.strings = "#NV")
+
+## eukaryotic algae relative biovolume 
+
+eukary.algae_rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\eukaryotic_algae_rel_biovolume_ROT19.csv", header = TRUE , sep = ";" , row.names=  1, stringsAsFactors = FALSE, na.strings = "#NV")
+
+## eukaryotic algae & microzooplankton relative biovolume 
+
+eukary.algae.microplankton_rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\eukaryotic_algae_microplankton_rel_biovolume_ROT19.csv", header = TRUE , sep = ";", row.names=  1,  stringsAsFactors = FALSE, na.strings = "#NV")
+
+## d2H water values
+
+d2H.water <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\d2H_H2O_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+
+#note: data frames include two different depths: surface water (A) and chlorophyll maximum depth (B)
+
+
+#import data (reference data)
+
+## alpha lipid/water values algal culturing studies (Ladd et al., 2024) [https://doi.org/10.5061/dryad.nvx0k6f0v]
+
+alpha_lipid_cultures <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\alpha_lipid_water_algae_cultures_Ladd_etal_2024.csv",
+                                  header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+
+## d2H C16:0 values from seston and zooplankton (Pilecky et al., 2022) [https://doi.org/10.1111/1365-2435.13981]
+
+d2H_C16.0_seston_zoo <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\d2H_C16.0_FieldStudy_Pilecky_etal_2022.csv",
+                                  header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+
+#transforming datasets for calculation 
+
+## transform biovolume percentage data to decimals (division by 100)
+
+phyto_rel.bioVol.dec <- phytoplankton_rel.bioVol/100
+
+phyto.micro_rel.bioVol.dec <- phyto.microplankton_rel.bioVol/100
+
+eukary.algae_rel.bioVol.dec <- eukary.algae_rel.bioVol/100
+
+eukary.algae.micro_rel.bioVol.dec <- eukary.algae.microplankton_rel.bioVol/100
+
+## conversion of d2H water values to R water values
+
+R.water <- as.data.frame((d2H.water[,2:2]/1000)+1)
+
+```
+
+## Monte Carlo simulation of alpha lipid/water values for each lipid and phytoplankton group
+
+```{r}
+
+#assuming a normal distribution (N) with mean and SD of alpha lipid/water values from algal cultures (Ladd et al., 2024) (n= 50,000)
+
+## no set.seed function was set for rnorm() to avoid any influence of the set.seed number on the results- 
+##instead, n in rnorm() was set to 50,000 to have a high enough sampling number to gain consistent mean values according to the central limit theorem
+
+#N(alpha C16:0-water) 
+
+## cyanobacteria 
+
+mean_alpha_C16_water_cyano <- alpha_lipid_cultures[1:1,2:2]
+sd_alpha_C16_water_cyano <- alpha_lipid_cultures[1:1,3:3]
+
+norm_cyano_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_cyano , sd= sd_alpha_C16_water_cyano)
+norm_cyano_alpha_C16_water.df <- as.data.frame(norm_cyano_alpha_C16_water)
+
+## green algae (GA)
+
+mean_alpha_C16_water_GA <- alpha_lipid_cultures[2:2,2:2]
+sd_alpha_C16_water_GA <- alpha_lipid_cultures[2:2,3:3]
+
+norm_GA_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_GA , sd= sd_alpha_C16_water_GA)
+norm_GA_alpha_C16_water.df <- as.data.frame(norm_GA_alpha_C16_water)
+
+## Diatoms
+
+mean_alpha_C16_water_dia <- alpha_lipid_cultures[3:3,2:2]
+sd_alpha_C16_water_dia <- alpha_lipid_cultures[3:3,3:3]
+
+norm_dia_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_dia , sd= sd_alpha_C16_water_dia)
+norm_dia_alpha_C16_water.df <- as.data.frame(norm_dia_alpha_C16_water)
+
+## Dinoflagellates
+
+mean_alpha_C16_water_dino <- alpha_lipid_cultures[4:4,2:2]
+sd_alpha_C16_water_dino <- alpha_lipid_cultures[4:4,3:3]
+
+norm_dino_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_dino , sd= sd_alpha_C16_water_dino)
+norm_dino_alpha_C16_water.df <- as.data.frame(norm_dino_alpha_C16_water)
+
+## Chrysophyta <- based on mean and SD of d2H C16:0 values of diatoms and dinoflagellates 
+
+mean_alpha_C16_water_chryso <- alpha_lipid_cultures[5:5,2:2]
+sd_alpha_C16_water_chryso <- alpha_lipid_cultures[5:5,3:3]
+
+norm_chryso_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_chryso , sd= sd_alpha_C16_water_chryso)
+norm_chryso_alpha_C16_water.df <- as.data.frame(norm_chryso_alpha_C16_water)
+
+## Cryptomonads
+
+mean_alpha_C16_water_crypto <- alpha_lipid_cultures[6:6,2:2]
+sd_alpha_C16_water_crypto <- alpha_lipid_cultures[6:6,3:3]
+
+norm_crypto_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_crypto , sd= sd_alpha_C16_water_crypto)
+norm_crypto_alpha_C16_water.df <- as.data.frame(norm_crypto_alpha_C16_water)
+
+
+#N(alpha phytol-water)
+
+## cyanobacteria 
+
+mean_alpha_phytol_water_cyano <- alpha_lipid_cultures[1:1,4:4]
+sd_alpha_phytol_water_cyano <- alpha_lipid_cultures[1:1,5:5]
+
+norm_cyano_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_cyano , sd= sd_alpha_phytol_water_cyano)
+norm_cyano_alpha_phytol_water.df <- as.data.frame(norm_cyano_alpha_phytol_water)
+
+## green algae (GA)
+
+mean_alpha_phytol_water_GA <- alpha_lipid_cultures[2:2,4:4]
+sd_alpha_phytol_water_GA <- alpha_lipid_cultures[2:2,5:5]
+
+norm_GA_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_GA , sd= sd_alpha_phytol_water_GA)
+norm_GA_alpha_phytol_water.df <- as.data.frame(norm_GA_alpha_phytol_water)
+
+## Diatoms
+
+mean_alpha_phytol_water_dia <- alpha_lipid_cultures[3:3,4:4]
+sd_alpha_phytol_water_dia <- alpha_lipid_cultures[3:3,5:5]
+
+norm_dia_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_dia , sd= sd_alpha_phytol_water_dia)
+norm_dia_alpha_phytol_water.df <- as.data.frame(norm_dia_alpha_phytol_water)
+
+## Dinoflagellates
+
+mean_alpha_phytol_water_dino <- alpha_lipid_cultures[4:4,4:4]
+sd_alpha_phytol_water_dino <- alpha_lipid_cultures[4:4,5:5]
+
+norm_dino_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_dino , sd= sd_alpha_phytol_water_dino)
+norm_dino_alpha_phytol_water.df <- as.data.frame(norm_dino_alpha_phytol_water)
+
+## Chrysophyta <- based on mean and SD of d2H phytol values of diatoms and dinoflagellates
+
+mean_alpha_phytol_water_chryso <- alpha_lipid_cultures[5:5,4:4]
+sd_alpha_phytol_water_chryso <- alpha_lipid_cultures[5:5,5:5]
+
+norm_chryso_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_chryso , sd= sd_alpha_phytol_water_chryso)
+norm_chryso_alpha_phytol_water.df <- as.data.frame(norm_chryso_alpha_phytol_water)
+
+## Cryptomonads
+
+mean_alpha_phytol_water_crypto <- alpha_lipid_cultures[6:6,4:4]
+sd_alpha_phytol_water_crypto <- alpha_lipid_cultures[6:6,5:5]
+
+norm_crypto_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_crypto , sd= sd_alpha_phytol_water_crypto)
+norm_crypto_alpha_phytol_water.df <- as.data.frame(norm_crypto_alpha_phytol_water)
+
+
+#N(alpha sterol-water)
+
+## cyanobacteria #NA #no sterols
+
+## green algae (GA)
+
+mean_alpha_sterol_water_GA <- alpha_lipid_cultures[2:2,6:6]
+sd_alpha_sterol_water_GA <- alpha_lipid_cultures[2:2,7:7]
+
+norm_GA_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_GA , sd= sd_alpha_sterol_water_GA)
+norm_GA_alpha_sterol_water.df <- as.data.frame(norm_GA_alpha_sterol_water)
+
+## Diatoms
+
+mean_alpha_sterol_water_dia <- alpha_lipid_cultures[3:3,6:6]
+sd_alpha_sterol_water_dia <- alpha_lipid_cultures[3:3,7:7]
+
+norm_dia_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_dia , sd= sd_alpha_sterol_water_dia)
+norm_dia_alpha_sterol_water.df <- as.data.frame(norm_dia_alpha_sterol_water)
+
+## Dinoflagellates
+
+mean_alpha_sterol_water_dino <- alpha_lipid_cultures[4:4,6:6]
+sd_alpha_sterol_water_dino <- alpha_lipid_cultures[4:4,7:7]
+
+norm_dino_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_dino , sd= sd_alpha_sterol_water_dino)
+norm_dino_alpha_sterol_water.df <- as.data.frame(norm_dino_alpha_sterol_water)
+
+## Chrysophyta <- based on mean and SD of d2H sterol values of diatoms and dinoflagellates  
+
+mean_alpha_sterol_water_chryso <- alpha_lipid_cultures[5:5,6:6]
+sd_alpha_sterol_water_chryso <- alpha_lipid_cultures[5:5,7:7]
+
+norm_chryso_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_chryso , sd= sd_alpha_sterol_water_chryso)
+norm_chryso_alpha_sterol_water.df <- as.data.frame(norm_chryso_alpha_sterol_water)
+
+## Cryptomonads
+
+mean_alpha_sterol_water_crypto <- alpha_lipid_cultures[6:6,6:6]
+sd_alpha_sterol_water_crypto <- alpha_lipid_cultures[6:6,7:7]
+
+norm_crypto_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_crypto , sd= sd_alpha_sterol_water_crypto)
+norm_crypto_alpha_sterol_water.df <- as.data.frame(norm_crypto_alpha_sterol_water)
+
+```
+
+## modeling of biovolume-weighted 2H/1H (R) lipid values for each sampling date considering algal biovolume only
+
+### calculating 2H/1H (R) lipid values for each algal group by R lipid = alpha lipid/water * R water, based on R water values in Rotsee, then multiply with relative biovolume
+
+#### first: R lipid algal group= alpha lipid/water x R water
+#### second: R lipid phyto=  Rlipid algal group x bioVol 
+
+
+```{r}
+
+# modeling R C16:0 values 
+
+## defining relative biovolume of single algal groups 
+
+cyano_phyto_bio1 <- as.data.frame(phyto_rel.bioVol.dec$cyanobacteria_relBio)
+
+GA_phyto_bio1 <- as.data.frame(phyto_rel.bioVol.dec$green.algae_relBio)
+
+chryso_phyto_bio1 <- as.data.frame(phyto_rel.bioVol.dec$Chrysophyta_relBio)
+
+dia_phyto_bio1 <- as.data.frame(phyto_rel.bioVol.dec$Diatoms_relBio)
+
+dino_phyto_bio1 <- as.data.frame(phyto_rel.bioVol.dec$Dinoflagellates_relBio)
+
+crypto_phyto_bio1 <- as.data.frame(phyto_rel.bioVol.dec$Cryptophyceae_relBio)
+
+
+#cyanobacteria
+
+R_C16_cyano_fun1 <- function(x) (x*norm_cyano_alpha_C16_water.df)
+
+R_C16_cyano_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_C16_cyano_fun1)) 
+
+
+R_C16_cyano_fun2 <- function(x) (x*cyano_phyto_bio1)
+
+R_C16_cyano_bioVol_biweekly <- as.data.frame(apply((R_C16_cyano_biweekly), MARGIN = 1, FUN = R_C16_cyano_fun2))
+
+
+## green algae (GA)
+
+R_C16_GA_fun1 <- function(x) (x*norm_GA_alpha_C16_water.df)
+
+R_C16_GA_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_C16_GA_fun1)) 
+
+
+R_C16_GA_fun2 <- function(x) (x*GA_phyto_bio1)
+
+R_C16_GA_bioVol_biweekly <- as.data.frame(apply((R_C16_GA_biweekly), MARGIN = 1, FUN = R_C16_GA_fun2))
+
+
+## Chrysophyta
+
+R_C16_chryso_fun1 <- function(x) (x*norm_chryso_alpha_C16_water.df)
+
+R_C16_chryso_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_C16_chryso_fun1)) 
+
+
+R_C16_chryso_fun2 <- function(x) (x*chryso_phyto_bio1)
+
+R_C16_chryso_bioVol_biweekly <- as.data.frame(apply((R_C16_chryso_biweekly), MARGIN = 1, FUN = R_C16_chryso_fun2))
+
+
+## Diatoms
+
+R_C16_dia_fun1 <- function(x) (x*norm_dia_alpha_C16_water.df)
+
+R_C16_dia_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_C16_dia_fun1)) 
+
+
+R_C16_dia_fun2 <- function(x) (x*dia_phyto_bio1)
+
+R_C16_dia_bioVol_biweekly <- as.data.frame(apply((R_C16_dia_biweekly), MARGIN = 1, FUN = R_C16_dia_fun2))
+
+
+## Dinoflagellates
+
+R_C16_dino_fun1 <- function(x) (x*norm_dino_alpha_C16_water.df)
+
+R_C16_dino_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_C16_dino_fun1)) 
+
+
+R_C16_dino_fun2 <- function(x) (x*dino_phyto_bio1)
+
+R_C16_dino_bioVol_biweekly <- as.data.frame(apply((R_C16_dino_biweekly), MARGIN = 1, FUN = R_C16_dino_fun2))
+
+
+## Cryptophyceae
+
+R_C16_crypto_fun1 <- function(x) (x*norm_crypto_alpha_C16_water.df)
+
+R_C16_crypto_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_C16_crypto_fun1)) 
+
+
+R_C16_crypto_fun2 <- function(x) (x*crypto_phyto_bio1)
+
+R_C16_crypto_bioVol_biweekly <- as.data.frame(apply((R_C16_crypto_biweekly), MARGIN = 1, FUN = R_C16_crypto_fun2))
+
+
+## sum of biovolume-weighted 2H/1H (R) C16:0 values for each sampling date
+
+
+R_C16_phyto_all_biweekly.df <- (R_C16_crypto_bioVol_biweekly+ 
+                               R_C16_cyano_bioVol_biweekly+ 
+                               R_C16_dia_bioVol_biweekly+ 
+                               R_C16_dino_bioVol_biweekly+
+                               R_C16_GA_bioVol_biweekly+ 
+                               R_C16_chryso_bioVol_biweekly)
+
+
+
+
+# modeling R phytol values 
+
+## defining relative biovolume of single algal groups 
+
+cyano_phyto_bio2 <- as.data.frame(phyto_rel.bioVol.dec$cyanobacteria_relBio)
+
+GA_phyto_bio2 <- as.data.frame(phyto_rel.bioVol.dec$green.algae_relBio)
+
+chryso_phyto_bio2 <- as.data.frame(phyto_rel.bioVol.dec$Chrysophyta_relBio)
+
+dia_phyto_bio2 <- as.data.frame(phyto_rel.bioVol.dec$Diatoms_relBio)
+
+dino_phyto_bio2 <- as.data.frame(phyto_rel.bioVol.dec$Dinoflagellates_relBio)
+
+crypto_phyto_bio2 <- as.data.frame(phyto_rel.bioVol.dec$Cryptophyceae_relBio)
+
+
+#cyanobacteria
+
+R_phytol_cyano_fun1 <- function(x) (x*norm_cyano_alpha_phytol_water.df)
+
+R_phytol_cyano_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_phytol_cyano_fun1)) 
+
+
+R_phytol_cyano_fun2 <- function(x) (x*cyano_phyto_bio2)
+
+R_phytol_cyano_bioVol_biweekly <- as.data.frame(apply((R_phytol_cyano_biweekly), MARGIN = 1, FUN = R_phytol_cyano_fun2))
+
+
+
+## green algae (GA)
+
+R_phytol_GA_fun1 <- function(x) (x*norm_GA_alpha_phytol_water.df)
+
+R_phytol_GA_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_phytol_GA_fun1)) 
+
+
+R_phytol_GA_fun2 <- function(x) (x*GA_phyto_bio2)
+
+R_phytol_GA_bioVol_biweekly <- as.data.frame(apply((R_phytol_GA_biweekly), MARGIN = 1, FUN = R_phytol_GA_fun2))
+
+
+
+## Chrysophyta
+
+R_phytol_chryso_fun1 <- function(x) (x*norm_chryso_alpha_phytol_water.df)
+
+R_phytol_chryso_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_phytol_chryso_fun1)) 
+
+
+R_phytol_chryso_fun2 <- function(x) (x*chryso_phyto_bio2)
+
+R_phytol_chryso_bioVol_biweekly <- as.data.frame(apply((R_phytol_chryso_biweekly), MARGIN = 1, FUN = R_phytol_chryso_fun2))
+
+
+## Diatoms
+
+R_phytol_dia_fun1 <- function(x) (x*norm_dia_alpha_phytol_water.df)
+
+R_phytol_dia_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_phytol_dia_fun1)) 
+
+
+R_phytol_dia_fun2 <- function(x) (x*dia_phyto_bio2)
+
+R_phytol_dia_bioVol_biweekly <- as.data.frame(apply((R_phytol_dia_biweekly), MARGIN = 1, FUN = R_phytol_dia_fun2))
+
+
+
+## Dinoflagellates
+
+R_phytol_dino_fun1 <- function(x) (x*norm_dino_alpha_phytol_water.df)
+
+R_phytol_dino_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_phytol_dino_fun1)) 
+
+
+R_phytol_dino_fun2 <- function(x) (x*dino_phyto_bio2)
+
+R_phytol_dino_bioVol_biweekly <- as.data.frame(apply((R_phytol_dino_biweekly), MARGIN = 1, FUN = R_phytol_dino_fun2))
+
+
+
+## Cryptophyceae
+
+R_phytol_crypto_fun1 <- function(x) (x*norm_crypto_alpha_phytol_water.df)
+
+R_phytol_crypto_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_phytol_crypto_fun1)) 
+
+
+R_phytol_crypto_fun2 <- function(x) (x*crypto_phyto_bio2)
+
+R_phytol_crypto_bioVol_biweekly <- as.data.frame(apply((R_phytol_crypto_biweekly), MARGIN = 1, FUN = R_phytol_crypto_fun2))
+
+
+
+#sum of weighted R phytol values for each sampling date
+
+R_phytol_all_biweekly.df <- (R_phytol_crypto_bioVol_biweekly + 
+                            R_phytol_cyano_bioVol_biweekly + 
+                            R_phytol_dia_bioVol_biweekly + 
+                            R_phytol_dino_bioVol_biweekly +
+                            R_phytol_GA_bioVol_biweekly + 
+                            R_phytol_chryso_bioVol_biweekly)
+
+
+
+#modeling R sterol values 
+
+## defining relative biovolume of single eukaryotic algal groups (cyanobacteria do not produce sterols)
+
+GA_eukary_bio <- as.data.frame(eukary.algae_rel.bioVol.dec$green.algae_relBio)
+
+chryso_eukary_bio <- as.data.frame(eukary.algae_rel.bioVol.dec$Chrysophyta_relBio)
+
+dia_eukary_bio <- as.data.frame(eukary.algae_rel.bioVol.dec$Diatoms_relBio)
+
+dino_eukary_bio <- as.data.frame(eukary.algae_rel.bioVol.dec$Dinoflagellates_relBio)
+
+crypto_eukary_bio <- as.data.frame(eukary.algae_rel.bioVol.dec$Cryptophyceae_relBio)
+
+
+## green algae (GA)
+
+R_sterol_GA_fun1 <- function(x) (x*norm_GA_alpha_sterol_water.df)
+
+R_sterol_GA_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_sterol_GA_fun1)) 
+
+
+R_sterol_GA_fun2 <- function(x) (x*GA_eukary_bio)
+
+R_sterol_GA_bioVol_biweekly <- as.data.frame(apply((R_sterol_GA_biweekly), MARGIN = 1, FUN = R_sterol_GA_fun2))
+
+
+## Chrysophyta 
+
+R_sterol_chryso_fun1 <- function(x) (x*norm_chryso_alpha_sterol_water.df)
+
+R_sterol_chryso_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_sterol_chryso_fun1)) 
+
+
+R_sterol_chryso_fun2 <- function(x) (x*chryso_eukary_bio)
+
+R_sterol_chryso_bioVol_biweekly <- as.data.frame(apply((R_sterol_chryso_biweekly), MARGIN = 1, FUN = R_sterol_chryso_fun2))
+
+
+## Diatoms
+
+R_sterol_dia_fun1 <- function(x) (x*norm_dia_alpha_sterol_water.df)
+
+R_sterol_dia_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_sterol_dia_fun1)) 
+
+
+R_sterol_dia_fun2 <- function(x) (x*dia_eukary_bio)
+
+R_sterol_dia_bioVol_biweekly <- as.data.frame(apply((R_sterol_dia_biweekly), MARGIN = 1, FUN = R_sterol_dia_fun2))
+
+
+## Dinoflagellates
+
+R_sterol_dino_fun1 <- function(x) (x*norm_dino_alpha_sterol_water.df)
+
+R_sterol_dino_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_sterol_dino_fun1)) 
+
+
+R_sterol_dino_fun2 <- function(x) (x*dino_eukary_bio)
+
+R_sterol_dino_bioVol_biweekly <- as.data.frame(apply((R_sterol_dino_biweekly), MARGIN = 1, FUN = R_sterol_dino_fun2))
+
+
+## Cryptophyceae
+
+R_sterol_crypto_fun1 <- function(x) (x*norm_crypto_alpha_sterol_water.df)
+
+R_sterol_crypto_biweekly <- as.data.frame(apply((R.water), MARGIN = 1, FUN = R_sterol_crypto_fun1)) 
+
+
+R_sterol_crypto_fun2 <- function(x) (x*crypto_eukary_bio)
+
+R_sterol_crypto_bioVol_biweekly <- as.data.frame(apply((R_sterol_crypto_biweekly), MARGIN = 1, FUN = R_sterol_crypto_fun2))
+
+
+
+#sum of weighted 2H/1H (R) sterol values for each sampling date
+
+R_sterol_eukary_biweekly.df <- (R_sterol_crypto_bioVol_biweekly + 
+                               R_sterol_dia_bioVol_biweekly + 
+                               R_sterol_dino_bioVol_biweekly +
+                               R_sterol_GA_bioVol_biweekly + 
+                               R_sterol_chryso_bioVol_biweekly)
+
+```
+
+## calculation of epsilon lipid1/lipid2 values including only algal 2H/1H (R) lipid values (epsilon lipid1/lipid2 phyto)
+
+```{r}
+## Epsilon lipid1/lipid2 = ((R lipid1/R lipid2) - 1)*1000
+
+# epsilon C16:0/phytol 
+
+epsilon_C16_phytol_phyto_biweekly <- as.data.frame(((R_C16_phyto_all_biweekly.df/R_phytol_all_biweekly.df)-1)*1000)
+
+mean_eps_C16_phytol_phyto_biweekly <- as.data.frame(rowMeans(epsilon_C16_phytol_phyto_biweekly)) #extract mean
+sd_eps_C16_phytol_phyto_biweekly <- as.data.frame(apply(epsilon_C16_phytol_phyto_biweekly, 1, sd)) #extract SD 
+
+
+# epsilon C16:0/sterol
+
+epsilon_C16_sterol_phyto_biweekly <- as.data.frame(((R_C16_phyto_all_biweekly.df/R_sterol_eukary_biweekly.df)-1)*1000)
+
+mean_eps_C16_sterol_phyto_biweekly <- as.data.frame(rowMeans(epsilon_C16_sterol_phyto_biweekly)) #extract mean 
+sd_eps_C16_sterol_phyto_biweekly <- as.data.frame(apply(epsilon_C16_sterol_phyto_biweekly, 1, sd)) #extract SD
+
+# epsilon sterol/phytol
+
+epsilon_sterol_phytol_phyto_biweekly<- as.data.frame(((R_sterol_eukary_biweekly.df/R_phytol_all_biweekly.df)-1)*1000)
+
+mean_eps_sterol_phytol_phyto_biweekly <- as.data.frame(rowMeans(epsilon_sterol_phytol_phyto_biweekly)) #extract mean 
+sd_eps_sterol_phytol_phyto_biweekly <- as.data.frame(apply(epsilon_sterol_phytol_phyto_biweekly, 1, sd)) #extract SD
+
+
+# creating data frame with modeled epsilon lipid1/lipid2 autotroph values (mean and SD)
+
+eps_lipid1.2_modeled_phyto_biweekly <- cbind.data.frame(mean_eps_C16_phytol_phyto_biweekly,
+                                                        sd_eps_C16_phytol_phyto_biweekly,
+                                                        mean_eps_C16_sterol_phyto_biweekly,
+                                                        sd_eps_C16_sterol_phyto_biweekly,
+                                                        mean_eps_sterol_phytol_phyto_biweekly,
+                                                        sd_eps_sterol_phytol_phyto_biweekly)
+
+colnames(eps_lipid1.2_modeled_phyto_biweekly) <- c("mean_eps_C16_phytol_phyto", "sd_eps_C16_phytol_phyto",
+                                                   "mean_eps_C16_sterol_phyto", "sd_eps_C16_sterol_phyto",
+                                                   "mean_eps_sterol_phytol_phyto", "sd_eps_sterol_phytol_phyto")
+
+rownames(eps_lipid1.2_modeled_phyto_biweekly) <- rownames(epsilon_lipid1.2)
+
+```
+
+## modeling of theoretical microzooplankton 2H/1H (R) C16:0 and d2H sterol values
+
+```{r}
+
+# estimation of hydrogen isotope fractionation factor alpha between C16:0 of seston and zooplankton 
+
+##  alpha = (d2H lipid zoo+1000)/(d2H lipid seston+1000)
+
+# d2H C16:0 values from seston and zooplankton (Pilecky et al., 2022) [https://doi.org/10.1111/1365-2435.13981]
+
+d2H_C16_seston <- d2H_C16.0_seston_zoo[1:109,]
+
+d2H_C16_zoo <- d2H_C16.0_seston_zoo[110:263,]
+
+## Monte Carlo simulation of d2H C16:0 values for seston and zooplankton 
+
+## N(d2H C16:0) with mean and SD of d2H C16:0 values from Pilecky et al., 2022 (n= 10,000)
+
+## seston
+
+mean_d2H_C16_seston <- mean(d2H_C16_seston$d2H) 
+sd_d2H_C16_seston <- sd(d2H_C16_seston$d2H)
+
+norm_d2H_C16_seston <- rnorm(50000, mean= mean_d2H_C16_seston, sd= sd_d2H_C16_seston)
+
+## zooplankton
+
+mean_d2H_C16_zoo <- mean(d2H_C16_zoo$d2H) 
+sd_d2H_C16_zoo <- sd(d2H_C16_zoo$d2H) 
+
+norm_d2H_C16_zoo <- rnorm(50000, mean= mean_d2H_C16_zoo, sd= sd_d2H_C16_zoo)
+
+
+#calculating fractionation factor alpha
+
+fractionation_zoo_seston <- as.data.frame(((norm_d2H_C16_zoo+1000)/(norm_d2H_C16_seston+1000)))
+
+
+#calculation of theoretical microzooplankton 2H/1H (R) C16:0 and sterol values by multiplying algal R lipid values with alpha 
+
+fractionation_fun <- function(x)(x*t(fractionation_zoo_seston))
+
+## R C16:0 
+
+R_C16_micro_biweekly <- as.data.frame(t(apply(R_C16_phyto_all_biweekly.df, MARGIN= 1, fractionation_fun)))
+
+## R sterol 
+
+R_sterol_micro_biweekly <- as.data.frame(t(apply(R_sterol_eukary_biweekly.df, MARGIN= 1, fractionation_fun)))
+
+```
+
+## modeling of biovolume-weighted 2H/1H (R) lipid values for each sampling date considering algal and microzooplankton biovolume
+
+### calculating 2H/1H (R) lipid values for each group by R lipid = alpha lipid/water * R water, based on R water values in Rotsee, then multiply with relative biovolume
+
+#### first: R lipid group= alpha lipid/water x R water
+#### second: R lipid phyto&zoo =  Rlipid group x bioVol 
+
+```{r}
+
+#modeling R C16:0 values
+
+## defining relative biovolume of single algal and microzooplankton groups
+
+cyano_bio_mix <- as.data.frame(phyto.micro_rel.bioVol.dec$cyanobacteria_relBio)
+
+GA_bio_mix <- as.data.frame(phyto.micro_rel.bioVol.dec$green.algae_relBio)
+
+chryso_bio_mix <- as.data.frame(phyto.micro_rel.bioVol.dec$Chrysophyta_relBio)
+
+dia_bio_mix <- as.data.frame(phyto.micro_rel.bioVol.dec$Diatoms_relBio)
+
+dino_bio_mix<- as.data.frame(phyto.micro_rel.bioVol.dec$Dinoflagellates_relBio)
+
+crypto_bio_mix <- as.data.frame(phyto.micro_rel.bioVol.dec$Cryptophyceae_relBio)
+
+roti_bio_mix <- as.data.frame(phyto.micro_rel.bioVol.dec$Rotifera_relBio)
+
+cili_bio_mix <- as.data.frame(phyto.micro_rel.bioVol.dec$Ciliata_relBio)
+
+gym_helv_bio_mix <- as.data.frame(phyto.micro_rel.bioVol.dec$Gymnodinium_helveticum_relBio)
+
+
+#phytoplankton 
+
+#cyanobacteria
+
+R_C16_cyano_fun3 <- function(x) (x*cyano_bio_mix)
+
+R_C16_cyano_mix_bioVol_biweekly <- as.data.frame(apply((R_C16_cyano_biweekly), MARGIN = 1, FUN = R_C16_cyano_fun3))
+
+
+## green algae (GA)
+
+R_C16_GA_fun3 <- function(x) (x*GA_bio_mix)
+
+R_C16_GA_mix_bioVol_biweekly <- as.data.frame(apply((R_C16_GA_biweekly), MARGIN = 1, FUN = R_C16_GA_fun3))
+
+
+## Chrysophyta
+
+R_C16_chryso_fun3 <- function(x) (x*chryso_bio_mix)
+
+R_C16_chryso_mix_bioVol_biweekly <- as.data.frame(apply((R_C16_chryso_biweekly), MARGIN = 1, FUN = R_C16_chryso_fun3))
+
+
+## Diatoms
+
+R_C16_dia_fun3 <- function(x) (x*dia_bio_mix)
+
+R_C16_dia_mix_bioVol_biweekly <- as.data.frame(apply((R_C16_dia_biweekly), MARGIN = 1, FUN = R_C16_dia_fun3))
+
+
+## Dinoflagellates
+
+R_C16_dino_fun3 <- function(x) (x*dino_bio_mix)
+
+R_C16_dino_mix_bioVol_biweekly <- as.data.frame(apply((R_C16_dino_biweekly), MARGIN = 1, FUN = R_C16_dino_fun3))
+
+
+## Cryptophyceae
+
+R_C16_crypto_fun3 <- function(x) (x*crypto_bio_mix)
+
+R_C16_crypto_mix_bioVol_biweekly <- as.data.frame(apply((R_C16_crypto_biweekly), MARGIN = 1, FUN = R_C16_crypto_fun3))
+
+
+# microzooplankton 
+
+## Rotifera
+
+roti_bio_mix_fun <- function (x) (x*roti_bio_mix)
+
+R_C16_roti_mix_bioVol_biweekly <- as.data.frame(apply(R_C16_micro_biweekly, MARGIN = 2, roti_bio_mix_fun))
+
+
+## Ciliata
+
+cili_bio_mix_fun <- function(x)(x*cili_bio_mix)
+
+R_C16_cili_mix_bioVol_biweekly <- as.data.frame(apply(R_C16_micro_biweekly, MARGIN = 2, cili_bio_mix_fun))
+
+
+## Gymnodinium helveticum
+
+gym_helv_bio_mix_fun <- function(x)(x*gym_helv_bio_mix)
+
+R_C16_gym_mix_bioVol_biweekly <- as.data.frame(apply(R_C16_micro_biweekly, MARGIN = 2, gym_helv_bio_mix_fun))
+
+
+#sum of weighted R C16:0 values for each sampling date (phytoplankton groups + microzooplankton -> 'mix')
+
+R_C16_mix_biweekly.df <- (R_C16_crypto_mix_bioVol_biweekly + 
+                         R_C16_cyano_mix_bioVol_biweekly + 
+                         R_C16_dia_mix_bioVol_biweekly + 
+                         R_C16_dino_mix_bioVol_biweekly +
+                         R_C16_GA_mix_bioVol_biweekly + 
+                         R_C16_chryso_mix_bioVol_biweekly+
+                         R_C16_roti_mix_bioVol_biweekly+
+                         R_C16_cili_mix_bioVol_biweekly+
+                         R_C16_gym_mix_bioVol_biweekly)
+
+
+# modeling R sterol values 
+
+## defining relative biovolume of single eukaryotic algal and microzooplankton groups
+
+GA_eukary_mix <- as.data.frame(eukary.algae.micro_rel.bioVol.dec$green.algae_relBio)
+
+chryso_eukary_mix <- as.data.frame(eukary.algae.micro_rel.bioVol.dec$Chrysophyta_relBio)
+
+dia_eukary_mix <- as.data.frame(eukary.algae.micro_rel.bioVol.dec$Diatoms_relBio)
+
+dino_eukary_mix <- as.data.frame(eukary.algae.micro_rel.bioVol.dec$Dinoflagellates_relBio)
+
+crypto_eukary_mix <- as.data.frame(eukary.algae.micro_rel.bioVol.dec$Cryptophyceae_relBio)
+
+roti_eukary_mix <- as.data.frame(eukary.algae.micro_rel.bioVol.dec$Rotifera_relBio)
+
+cili_eukary_mix <- as.data.frame(eukary.algae.micro_rel.bioVol.dec$Ciliata_relBio)
+
+gym_helv_eukary_mix <- as.data.frame(eukary.algae.micro_rel.bioVol.dec$Gymnodinium_helveticum_relBio)
+
+
+#eukaryotic algae
+
+## green algae (GA)
+
+R_sterol_GA_fun3 <- function(x) (x*GA_eukary_mix)
+
+R_sterol_GA_mix_bioVol_biweekly <- as.data.frame(apply((R_sterol_GA_biweekly), MARGIN = 1, FUN = R_sterol_GA_fun3))
+
+
+## Chrysophyta
+
+R_sterol_chryso_fun3 <- function(x) (x*chryso_eukary_mix)
+
+R_sterol_chryso_mix_bioVol_biweekly <- as.data.frame(apply((R_sterol_chryso_biweekly), MARGIN = 1, FUN = R_sterol_chryso_fun3))
+
+
+## Diatoms
+
+R_sterol_dia_fun3 <- function(x) (x*dia_eukary_mix)
+
+R_sterol_dia_mix_bioVol_biweekly <- as.data.frame(apply((R_sterol_dia_biweekly), MARGIN = 1, FUN = R_sterol_dia_fun3))
+
+
+## Dinoflagellates
+
+R_sterol_dino_fun3 <- function(x) (x*dino_eukary_mix)
+
+R_sterol_dino_mix_bioVol_biweekly <- as.data.frame(apply((R_sterol_dino_biweekly), MARGIN = 1, FUN = R_sterol_dino_fun3))
+
+
+## Cryptophyceae
+
+R_sterol_crypto_fun3 <- function(x) (x*crypto_eukary_mix)
+
+R_sterol_crypto_mix_bioVol_biweekly <- as.data.frame(apply((R_sterol_crypto_biweekly), MARGIN = 1, FUN = R_sterol_crypto_fun3))
+
+
+#microzooplankton
+
+## Rotifera
+
+roti_eukary_mix_fun <- function(x)(x*roti_eukary_mix)
+
+R_sterol_roti_mix_bioVol_biweekly <- as.data.frame(apply(R_sterol_micro_biweekly, MARGIN= 2, roti_eukary_mix_fun))
+
+
+## Ciliata
+
+cili_eukary_mix_fun <- function(x)(x*cili_eukary_mix)
+
+R_sterol_cili_mix_bioVol_biweekly <- as.data.frame(apply(R_sterol_micro_biweekly, MARGIN= 2, cili_eukary_mix_fun))
+
+
+## Gymnodinium helveticum
+
+gym_helv_eukary_mix_fun <- function(x) (x*gym_helv_eukary_mix)
+
+R_sterol_gym_mix_bioVol_biweekly <- as.data.frame(apply(R_sterol_micro_biweekly, MARGIN= 2, gym_helv_eukary_mix_fun))
+
+
+
+#sum of weighted R sterol values for each sampling date (eukaryotic algal groups + microzooplankton -> 'mix')
+
+R_sterol_mix_biweekly.df <- (R_sterol_crypto_mix_bioVol_biweekly +
+                            R_sterol_dia_mix_bioVol_biweekly + 
+                            R_sterol_dino_mix_bioVol_biweekly +
+                            R_sterol_GA_mix_bioVol_biweekly + 
+                            R_sterol_chryso_mix_bioVol_biweekly+
+                            R_sterol_roti_mix_bioVol_biweekly+
+                            R_sterol_cili_mix_bioVol_biweekly+
+                            R_sterol_gym_mix_bioVol_biweekly)
+```
+
+## calculation of epsilon lipid1/lipid2 values including algal and microzooplankton 2H/1H (R) lipid values (epsilon lipid1/lipid2 phyto&zoo)
+
+```{r}
+
+# epsilon C16:0/phytol 
+
+epsilon_C16_phytol_mix_biweekly <- as.data.frame(((R_C16_mix_biweekly.df/R_phytol_all_biweekly.df)-1)*1000) 
+
+mean_eps_C16_phytol_mix_biweekly <- as.data.frame(rowMeans(epsilon_C16_phytol_mix_biweekly)) #extract mean
+sd_eps_C16_phytol_mix_biweekly <- as.data.frame(apply(epsilon_C16_phytol_mix_biweekly, 1, sd)) #extract SD
+
+
+# epsilon C16:0/sterol
+
+epsilon_C16_sterol_mix_biweekly <- as.data.frame(((R_C16_mix_biweekly.df/R_sterol_mix_biweekly.df)-1)*1000) 
+
+mean_eps_C16_sterol_mix_biweekly <- as.data.frame(rowMeans(epsilon_C16_sterol_mix_biweekly)) #extract mean
+sd_eps_C16_sterol_mix_biweekly <- as.data.frame(apply(epsilon_C16_sterol_mix_biweekly, 1, sd)) #extract SD
+
+# epsilon sterol/phytol 
+
+epsilon_sterol_phytol_mix_biweekly <-  as.data.frame(((R_sterol_mix_biweekly.df/R_phytol_all_biweekly.df)-1)*1000) 
+
+mean_eps_sterol_phytol_mix_biweekly <- as.data.frame(rowMeans(epsilon_sterol_phytol_mix_biweekly)) #extract mean
+sd_eps_sterol_phytol_mix_biweekly <- as.data.frame(apply(epsilon_sterol_phytol_mix_biweekly, 1, sd)) #extract SD
+
+# creating data frame with modeled epsilon lipid1/lipid2 auto-/heterotroph values (mean and SD)
+
+eps_lipid1.2_modeled_mix_biweekly <- cbind.data.frame(mean_eps_C16_phytol_mix_biweekly,
+                                                      sd_eps_C16_phytol_mix_biweekly,
+                                                      mean_eps_C16_sterol_mix_biweekly,
+                                                      sd_eps_C16_sterol_mix_biweekly,
+                                                      mean_eps_sterol_phytol_mix_biweekly,
+                                                      sd_eps_sterol_phytol_mix_biweekly)
+
+colnames(eps_lipid1.2_modeled_mix_biweekly) <- c("mean_eps_C16_phytol_mix", "sd_eps_C16_phytol_mix",
+                                                 "mean_eps_C16_sterol_mix", "sd_eps_C16_sterol_mix",
+                                                 "mean_eps_sterol_phytol_mix", "sd_eps_sterol_phytol_mix")
+
+rownames(eps_lipid1.2_modeled_mix_biweekly) <- rownames(epsilon_lipid1.2)
+
+```
+
+## goodness-of-fit of simulated vs. measured epsilon lipid1/2 values (Root Mean Square Error (RMSE))
+
+```{r}
+
+#merge data frames of measured and modeled epsilon lipid1/lipid2 values
+
+epsilon_measured_modeled <- cbind.data.frame(epsilon_lipid1.2, 
+                                             eps_lipid1.2_modeled_phyto_biweekly, 
+                                             eps_lipid1.2_modeled_mix_biweekly)
+
+#calculating RMSE: sqrt(mean((data actual - data predicted)^2))
+
+## epsilon C16:0/phytol
+
+epsilon_C16.0_phytol_measured_modeled <- cbind.data.frame(epsilon_measured_modeled$epsilon_C16.0_phytol,
+                                                          epsilon_measured_modeled$mean_eps_C16_phytol_phyto,
+                                                          epsilon_measured_modeled$mean_eps_C16_phytol_mix)
+
+epsilon_C16.0_phytol_measured_modeled_woNA <- na.omit(epsilon_C16.0_phytol_measured_modeled) #remove NA values
+
+colnames(epsilon_C16.0_phytol_measured_modeled_woNA) <- c("measured", "modeled_phyto", "modeled_mix")
+
+
+sqrt(mean((epsilon_C16.0_phytol_measured_modeled_woNA$measured - epsilon_C16.0_phytol_measured_modeled_woNA$modeled_phyto)^2))
+
+sqrt(mean((epsilon_C16.0_phytol_measured_modeled_woNA$measured - epsilon_C16.0_phytol_measured_modeled_woNA$modeled_mix)^2))
+
+## epsilon C16:0/sterol
+
+epsilon_C16.0_sterol_measured_modeled <- cbind.data.frame(epsilon_measured_modeled$epsilon_C16.0_sterol,
+                                                          epsilon_measured_modeled$mean_eps_C16_sterol_phyto,
+                                                          epsilon_measured_modeled$mean_eps_C16_sterol_mix)
+
+epsilon_C16.0_sterol_measured_modeled_woNA <- na.omit(epsilon_C16.0_sterol_measured_modeled)
+
+colnames(epsilon_C16.0_sterol_measured_modeled_woNA) <- c("measured", "modeled_phyto", "modeled_mix")
+
+
+sqrt(mean((epsilon_C16.0_sterol_measured_modeled_woNA$measured - epsilon_C16.0_sterol_measured_modeled_woNA$modeled_phyto)^2))
+
+sqrt(mean((epsilon_C16.0_sterol_measured_modeled_woNA$measured - epsilon_C16.0_sterol_measured_modeled_woNA$modeled_mix)^2))
+
+## epsilon sterol/phytol
+
+epsilon_sterol_phytol_measured_modeled <- cbind.data.frame(epsilon_measured_modeled$epsilon_sterol_phytol,
+                                                           epsilon_measured_modeled$mean_eps_sterol_phytol_phyto,
+                                                           epsilon_measured_modeled$mean_eps_sterol_phytol_mix)
+
+epsilon_sterol_phytol_measured_modeled_woNA <- na.omit(epsilon_sterol_phytol_measured_modeled)
+
+colnames(epsilon_sterol_phytol_measured_modeled_woNA) <- c("measured", "modeled_phyto", "modeled_mix")
+
+
+sqrt(mean((epsilon_sterol_phytol_measured_modeled_woNA$measured-epsilon_sterol_phytol_measured_modeled_woNA$modeled_phyto)^2))
+
+sqrt(mean((epsilon_sterol_phytol_measured_modeled_woNA$measured - epsilon_sterol_phytol_measured_modeled_woNA$modeled_mix)^2))
+
+```
+
+## plotting measured and modeled epsilon lipid1/lipid2 values
+
+```{r}
+#separating surface water (surface) and chlorophyll maximum depth (chlorMax)
+
+## surface water 
+
+#measured epsilon lipid1/lipid2 values
+
+epsilon_C16.0_phytol_surface <- as.data.frame(epsilon_lipid1.2[1:25,1:1])
+colnames(epsilon_C16.0_phytol_surface) <- c("epsilon_C16.0_phytol")
+
+epsilon_C16.0_sterol_surface <- as.data.frame(epsilon_lipid1.2[1:25,2:2])
+colnames(epsilon_C16.0_sterol_surface) <- c("epsilon_C16.0_sterol")
+
+epsilon_sterol_phytol_surface <- as.data.frame(epsilon_lipid1.2[1:25,3:3])
+colnames(epsilon_sterol_phytol_surface) <- c("epsilon_sterol_phytol")
+
+#modeled epsilon lipid1/lipid2 phyto values
+
+epsilon_C16.0_phytol_phyto_surface <- eps_lipid1.2_modeled_phyto_biweekly[1:25,1:2]
+
+epsilon_C16.0_sterol_phyto_surface <- eps_lipid1.2_modeled_phyto_biweekly[1:25,3:4]
+
+epsilon_sterol_phytol_phyto_surface <- eps_lipid1.2_modeled_phyto_biweekly[1:25,5:6]
+
+#modeled epsilon lipid1/lipid2 mix values
+
+epsilon_C16.0_phytol_mix_surface <- eps_lipid1.2_modeled_mix_biweekly[1:25,1:2]
+
+epsilon_C16.0_sterol_mix_surface <- eps_lipid1.2_modeled_mix_biweekly[1:25,3:4]
+
+epsilon_sterol_phytol_mix_surface <- eps_lipid1.2_modeled_mix_biweekly[1:25,5:6]
+
+
+## chlorophyll maximum depth 
+
+#measured epsilon lipid1/lipid2 values
+
+epsilon_C16.0_phytol_chlorMax <- as.data.frame(epsilon_lipid1.2[26:49,1:1])
+colnames(epsilon_C16.0_phytol_chlorMax) <- c("epsilon_C16.0_phytol")
+
+epsilon_C16.0_sterol_chlorMax <- as.data.frame(epsilon_lipid1.2[26:49,2:2])
+colnames(epsilon_C16.0_sterol_chlorMax) <- c("epsilon_C16.0_sterol")
+
+epsilon_sterol_phytol_chlorMax <- as.data.frame(epsilon_lipid1.2[26:49,3:3])
+colnames(epsilon_sterol_phytol_chlorMax) <- c("epsilon_sterol_phytol")
+
+#modeled epsilon lipid1/lipid2 phyto values
+
+epsilon_C16.0_phytol_phyto_chlorMax <- eps_lipid1.2_modeled_phyto_biweekly[26:49,1:2]
+
+epsilon_C16.0_sterol_phyto_chlorMax <- eps_lipid1.2_modeled_phyto_biweekly[26:49,3:4]
+
+epsilon_sterol_phytol_phyto_chlorMax <- eps_lipid1.2_modeled_phyto_biweekly[26:49,5:6]
+
+#modeled epsilon lipid1/lipid2 mix values
+
+epsilon_C16.0_phytol_mix_chlorMax <- eps_lipid1.2_modeled_mix_biweekly[26:49,1:2]
+
+epsilon_C16.0_sterol_mix_chlorMax <- eps_lipid1.2_modeled_mix_biweekly[26:49,3:4]
+
+epsilon_sterol_phytol_mix_chlorMax <- eps_lipid1.2_modeled_mix_biweekly[26:49,5:6]
+
+
+#setting sampling dates and variables
+
+#surface water
+
+epsilon_datesA <- c("2019-01-30","2019-02-27", "2019-02-13", "2019-03-13", "2019-03-27", "2019-04-10", "2019-04-24",
+                    "2019-05-08","2019-05-22", "2019-06-04", "2019-06-19","2019-07-17", "2019-07-30", "2019-08-14",
+                    "2019-09-11", "2019-09-25", "2019-10-09","2019-10-23", "2019-11-06","2019-11-20", "2019-12-04",
+                    "2019-12-18", "2020-01-07", "2020-01-21", "2020-02-06")
+
+## measured epsilon lipid1/lipid2 values
+
+rownames(epsilon_C16.0_phytol_surface) <- epsilon_datesA
+epsilon_C16.0_phytol_surface$date <- as.Date(rownames(epsilon_C16.0_phytol_surface), "%Y-%m-%d")
+
+rownames(epsilon_C16.0_sterol_surface) <- epsilon_datesA
+epsilon_C16.0_sterol_surface$date <- as.Date(rownames(epsilon_C16.0_sterol_surface), "%Y-%m-%d")
+
+rownames(epsilon_sterol_phytol_surface) <- epsilon_datesA
+epsilon_sterol_phytol_surface$date <- as.Date(rownames(epsilon_sterol_phytol_surface), "%Y-%m-%d")
+
+
+## modeled epsilon lipid1/lipid2 phyto values
+
+rownames(epsilon_C16.0_phytol_phyto_surface) <- epsilon_datesA
+epsilon_C16.0_phytol_phyto_surface$date <- as.Date(rownames(epsilon_C16.0_phytol_phyto_surface), "%Y-%m-%d")
+
+rownames(epsilon_C16.0_sterol_phyto_surface) <- epsilon_datesA
+epsilon_C16.0_sterol_phyto_surface$date <- as.Date(rownames(epsilon_C16.0_sterol_phyto_surface), "%Y-%m-%d")
+
+rownames(epsilon_sterol_phytol_phyto_surface) <- epsilon_datesA
+epsilon_sterol_phytol_phyto_surface$date <- as.Date(rownames(epsilon_sterol_phytol_phyto_surface), "%Y-%m-%d")
+
+## modeled epsilon lipid1/lipid2 mix values
+
+rownames(epsilon_C16.0_phytol_mix_surface) <- epsilon_datesA
+epsilon_C16.0_phytol_mix_surface$date <- as.Date(rownames(epsilon_C16.0_phytol_mix_surface), "%Y-%m-%d")
+
+rownames(epsilon_C16.0_sterol_mix_surface) <- epsilon_datesA
+epsilon_C16.0_sterol_mix_surface$date <- as.Date(rownames(epsilon_C16.0_sterol_mix_surface), "%Y-%m-%d")
+
+rownames(epsilon_sterol_phytol_mix_surface) <- epsilon_datesA
+epsilon_sterol_phytol_mix_surface$date <- as.Date(rownames(epsilon_sterol_phytol_mix_surface), "%Y-%m-%d")
+
+
+#chlorophyll maximum depth
+
+epsilon_datesB <- c("2019-01-30", "2019-02-13", "2019-03-13","2019-03-27",  "2019-04-10", "2019-04-24", "2019-05-08",
+                    "2019-05-22","2019-06-04", "2019-06-19", "2019-07-17", "2019-07-30", "2019-08-14","2019-09-11",
+                    "2019-09-25", "2019-10-09", "2019-10-23", "2019-11-06","2019-11-20", "2019-12-04","2019-12-18",
+                    "2020-01-07", "2020-01-21", "2020-02-06")
+
+## measured epsilon lipid1/lipid2 values
+
+rownames(epsilon_C16.0_phytol_chlorMax) <- epsilon_datesB
+epsilon_C16.0_phytol_chlorMax$date <- as.Date(rownames(epsilon_C16.0_phytol_chlorMax), "%Y-%m-%d")
+epsilon_C16.0_phytol_chlorMax$variable <- c("epsilon_C16.0_phytol")
+
+rownames(epsilon_C16.0_sterol_chlorMax) <- epsilon_datesB
+epsilon_C16.0_sterol_chlorMax$date <- as.Date(rownames(epsilon_C16.0_sterol_chlorMax), "%Y-%m-%d")
+epsilon_C16.0_sterol_chlorMax$variable <- c("epsilon_C16.0_sterol")
+
+rownames(epsilon_sterol_phytol_chlorMax) <- epsilon_datesB
+epsilon_sterol_phytol_chlorMax$date <- as.Date(rownames(epsilon_sterol_phytol_chlorMax), "%Y-%m-%d")
+epsilon_sterol_phytol_chlorMax$variable <- c("epsilon_sterol_phytol")
+
+
+## modeled epsilon lipid1/lipid2 phyto values
+
+rownames(epsilon_C16.0_phytol_phyto_chlorMax) <- epsilon_datesB
+epsilon_C16.0_phytol_phyto_chlorMax$date <- as.Date(rownames(epsilon_C16.0_phytol_phyto_chlorMax), "%Y-%m-%d")
+epsilon_C16.0_phytol_phyto_chlorMax$variable <- c("mean_eps_C16_phytol_phyto")
+
+rownames(epsilon_C16.0_sterol_phyto_chlorMax) <- epsilon_datesB
+epsilon_C16.0_sterol_phyto_chlorMax$date <- as.Date(rownames(epsilon_C16.0_sterol_phyto_chlorMax), "%Y-%m-%d")
+epsilon_C16.0_sterol_phyto_chlorMax$variable <- c("mean_eps_C16_sterol_phyto")
+
+rownames(epsilon_sterol_phytol_phyto_chlorMax) <- epsilon_datesB
+epsilon_sterol_phytol_phyto_chlorMax$date <- as.Date(rownames(epsilon_sterol_phytol_phyto_chlorMax), "%Y-%m-%d")
+epsilon_sterol_phytol_phyto_chlorMax$variable <- c("mean_eps_sterol_phytol_phyto")
+
+## modeled epsilon lipid1/lipid2 mix values
+
+rownames(epsilon_C16.0_phytol_mix_chlorMax) <- epsilon_datesB
+epsilon_C16.0_phytol_mix_chlorMax$date <- as.Date(rownames(epsilon_C16.0_phytol_mix_chlorMax), "%Y-%m-%d")
+epsilon_C16.0_phytol_mix_chlorMax$variable <- c("mean_eps_C16_phytol_mix")
+
+rownames(epsilon_C16.0_sterol_mix_chlorMax) <- epsilon_datesB
+epsilon_C16.0_sterol_mix_chlorMax$date <- as.Date(rownames(epsilon_C16.0_sterol_mix_chlorMax), "%Y-%m-%d")
+epsilon_C16.0_sterol_mix_chlorMax$variable <- c("mean_eps_C16_sterol_mix")
+
+rownames(epsilon_sterol_phytol_mix_chlorMax) <- epsilon_datesB
+epsilon_sterol_phytol_mix_chlorMax$date <- as.Date(rownames(epsilon_sterol_phytol_mix_chlorMax), "%Y-%m-%d")
+epsilon_sterol_phytol_mix_chlorMax$variable <- c("mean_eps_sterol_phytol_mix")
+
+
+# surface water
+
+pEps_C16.0_phytol_surface <- ggplot()+ ggtitle("1 m depth", subtitle= "1 m depth")+
+  coord_cartesian(x=as.Date(c("2019-01-30", "2020-02-06")), ylim=c(85,415), clip="off")+
+  scale_y_continuous(breaks = c(100,200,300,400))+
+  annotate("rect", xmin = as.Date("2019-04-19") ,xmax = as.Date("2019-04-29"), ymin = -Inf, ymax = 435, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-07-24") ,xmax = as.Date("2019-08-03"), ymin = -Inf, ymax = 435, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-10-18") ,xmax = as.Date("2019-10-28"), ymin = -Inf, ymax = 435, alpha=0.15, fill="seashell3")+
+  geom_ribbon(data= epsilon_C16.0_phytol_phyto_surface, 
+              aes(x=date, y= mean_eps_C16_phytol_phyto, xmin=min(date), xmax=max(date),
+                  ymin=(mean_eps_C16_phytol_phyto-sd_eps_C16_phytol_phyto),
+                  ymax=(mean_eps_C16_phytol_phyto+sd_eps_C16_phytol_phyto)), fill="dodgerblue1",
+              alpha=0.15)+
+  geom_ribbon(data= epsilon_C16.0_phytol_mix_surface, 
+              aes(x=date, y= mean_eps_C16_phytol_mix, xmin=min(date), xmax=max(date),
+                  ymin=(mean_eps_C16_phytol_mix-sd_eps_C16_phytol_mix),
+                  ymax=(mean_eps_C16_phytol_mix+sd_eps_C16_phytol_mix)), fill="turquoise1",
+              alpha=0.15)+
+  geom_line(data= epsilon_C16.0_phytol_phyto_surface, 
+            aes(x=date, y= mean_eps_C16_phytol_phyto), color= "dodgerblue3", linewidth=1)+
+  geom_line(data= epsilon_C16.0_phytol_mix_surface, 
+            aes(x=date, y= mean_eps_C16_phytol_mix), color= "turquoise3", linewidth=1)+
+  geom_line(data=epsilon_C16.0_phytol_surface[!is.na(epsilon_C16.0_phytol_surface$epsilon_C16.0_phytol),],
+            aes(x = date, y = epsilon_C16.0_phytol), color="navy", linewidth=1.25)+
+  ylab(expression(epsilon^{2}*""['C16:0/phytol']~("\u2030")))+ 
+  annotate("text",y= 486.5, x= as.Date("2018-11-05"),label="A", size=15, fontface=2, color="black")+
+  guides(shape = guide_legend(order=1))+
+  theme(axis.line.y = element_line(colour = "black"),
+        axis.line.x = element_blank(),
+        plot.title= element_text(size=35, face= "bold"),
+        plot.subtitle= element_text(size=15, color="white"),
+        panel.background = element_blank(),
+        axis.text.y = element_text(size=30, color="navy", face="bold"),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size=37.5, color="navy", margin=margin(r=20)),
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_blank(),
+        plot.margin = unit(c(1.5,0,0,0.5), "cm"))
+
+
+pEps_C16.0_sterol_surface <- ggplot()+
+  coord_cartesian(ylim=c(-115,215), clip="off")+
+  scale_y_continuous(breaks = c(-100,0,100,200))+
+  annotate("rect", xmin = as.Date("2019-04-19") ,xmax = as.Date("2019-04-29"), ymin = -Inf, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-07-24") ,xmax = as.Date("2019-08-03"),  ymin = -Inf, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-10-18") ,xmax = as.Date("2019-10-28"),  ymin = -Inf, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  geom_ribbon(data= epsilon_C16.0_sterol_phyto_surface, 
+              aes(x=date, y= mean_eps_C16_sterol_phyto, xmin=min(date), xmax=max(date),
+                  ymin=(mean_eps_C16_sterol_phyto-sd_eps_C16_sterol_phyto),
+                  ymax=(mean_eps_C16_sterol_phyto+sd_eps_C16_sterol_phyto)), fill="slateblue1",
+              alpha=0.15)+
+  geom_ribbon(data= epsilon_C16.0_sterol_mix_surface, 
+              aes(x=date, y= mean_eps_C16_sterol_mix, xmin=min(date), xmax=max(date),
+                  ymin=(mean_eps_C16_sterol_mix-sd_eps_C16_sterol_mix),
+                  ymax=(mean_eps_C16_sterol_mix+sd_eps_C16_sterol_mix)), fill="plum1",
+              alpha=0.25)+
+  geom_line(data= epsilon_C16.0_sterol_phyto_surface, 
+            aes(x=date, y= mean_eps_C16_sterol_phyto), color= "slateblue", linewidth=1)+
+  geom_line(data= epsilon_C16.0_sterol_mix_surface, 
+            aes(x=date, y= mean_eps_C16_sterol_mix), color= "plum3", linewidth=1)+
+  geom_line(data=epsilon_C16.0_sterol_surface[!is.na(epsilon_C16.0_sterol_surface$epsilon_C16.0_sterol),],
+            aes(x = date, y = epsilon_C16.0_sterol), color="violetred", linewidth=1.25)+
+  ylab(expression(epsilon^{2}*""['C16:0/sterol']~("\u2030")))+ 
+  guides(shape = guide_legend(order=1))+
+  theme(axis.line.y = element_line(colour = "black"),
+        axis.line.x = element_blank(),
+        panel.background = element_blank(),
+        axis.text.y = element_text(size=30, color="violetred", face="bold"),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size=37.5, color="violetred"),
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_blank(),
+        plot.margin = unit(c(0,0,0,0.5), "cm"))
+
+
+pEps_sterol_phytol_surface <- ggplot()+
+  coord_cartesian(ylim=c(-15,315), clip="off")+
+  scale_y_continuous(breaks = c(0,100,200,300))+
+  annotate("rect", xmin = as.Date("2019-04-19") ,xmax = as.Date("2019-04-29"), ymin = -30, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-07-24") ,xmax = as.Date("2019-08-03"), ymin = -30, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-10-18") ,xmax = as.Date("2019-10-28"), ymin = -30, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  geom_ribbon(data= epsilon_sterol_phytol_phyto_surface, 
+              aes(x=date, y= mean_eps_sterol_phytol_phyto, xmin=min(date), xmax=max(date),
+                  ymin=(mean_eps_sterol_phytol_phyto-sd_eps_sterol_phytol_phyto),
+                  ymax=(mean_eps_sterol_phytol_phyto+sd_eps_sterol_phytol_phyto)), fill="chartreuse1",
+              alpha=0.2)+
+  geom_ribbon(data= epsilon_sterol_phytol_mix_surface, 
+              aes(x=date, y= mean_eps_sterol_phytol_mix, xmin=min(date), xmax=max(date),
+                  ymin=(mean_eps_sterol_phytol_mix-sd_eps_sterol_phytol_mix),
+                  ymax=(mean_eps_sterol_phytol_mix+sd_eps_sterol_phytol_mix)), fill="yellow1",
+              alpha=0.25)+
+  geom_line(data= epsilon_sterol_phytol_phyto_surface, 
+            aes(x=date, y= mean_eps_sterol_phytol_phyto), color= "chartreuse2", linewidth=1)+
+  geom_line(data= epsilon_sterol_phytol_mix_surface, 
+            aes(x=date, y= mean_eps_sterol_phytol_mix), color= "yellow2", linewidth=1)+
+  geom_line(data=epsilon_sterol_phytol_surface[!is.na(epsilon_sterol_phytol_surface$epsilon_sterol_phytol),],
+            aes(x = date, y = epsilon_sterol_phytol), color="springgreen4", linewidth=1.25)+
+  ylab(expression(epsilon^{2}*""['sterol/phytol']~("\u2030")))+
+  guides(shape = guide_legend(order=1))+
+  theme(axis.line = element_line(colour = "black"),
+        panel.background = element_blank(),
+        axis.text.y = element_text(size=30, color="springgreen4", face="bold"),
+        axis.text.x = element_text(size=30, color="black", face="bold"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size=37.5, color="springgreen4", margin=margin(r=20)),
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_blank(),
+        plot.margin = unit(c(0,0,0.5,0.5), "cm"))
+
+
+pEpsilon_lipid1.2_surface <- plot_grid(pEps_C16.0_phytol_surface, pEps_C16.0_sterol_surface, pEps_sterol_phytol_surface,
+                                       ncol=1, rel_heights = c(1.375,1,1.1), align="v", axis='lr')
+
+
+# chlorophyll maximum depth
+
+pEps_C16.0_phytol_chlorMax <- ggplot()+ ggtitle("chlorophyll maximum depth", subtitle= "chlorophyll maximum depth")+
+  coord_cartesian(x=as.Date(c("2019-01-30", "2020-02-06")), ylim=c(85,415), clip="off")+
+  scale_y_continuous(breaks = c(100,200,300,400))+
+  annotate("rect", xmin = as.Date("2019-04-19") ,xmax = as.Date("2019-04-29"), ymin = -Inf, ymax = 435, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-06-14") ,xmax = as.Date("2019-06-24"), ymin =-Inf, ymax = 435, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-11-01") ,xmax = as.Date("2019-11-11"), ymin =-Inf, ymax = 435, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-11-15") ,xmax = as.Date("2019-11-25"), ymin =-Inf, ymax = 435, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2020-01-16") ,xmax = as.Date("2020-01-26"), ymin =-Inf, ymax = 435, alpha=0.15, fill="seashell3")+
+  geom_ribbon(data= epsilon_C16.0_phytol_phyto_chlorMax, 
+              aes(x=date, y= mean_eps_C16_phytol_phyto, xmin=min(date), xmax=max(date),
+                  ymin=(mean_eps_C16_phytol_phyto-sd_eps_C16_phytol_phyto),
+                  ymax=(mean_eps_C16_phytol_phyto+sd_eps_C16_phytol_phyto)), fill="dodgerblue1",
+              alpha=0.15)+
+  geom_ribbon(data= epsilon_C16.0_phytol_mix_chlorMax, 
+              aes(x=date, y= mean_eps_C16_phytol_mix, xmin=min(date), xmax=max(date),
+                  ymin=(mean_eps_C16_phytol_mix-sd_eps_C16_phytol_mix),
+                  ymax=(mean_eps_C16_phytol_mix+sd_eps_C16_phytol_mix)), fill="turquoise1",
+              alpha=0.15)+
+  geom_line(data= epsilon_C16.0_phytol_phyto_chlorMax, 
+            aes(x=date, y= mean_eps_C16_phytol_phyto, color= variable), linewidth=1)+
+  geom_line(data= epsilon_C16.0_phytol_mix_chlorMax, 
+            aes(x=date, y= mean_eps_C16_phytol_mix, color= variable), linewidth=1)+
+  geom_line(data=epsilon_C16.0_phytol_chlorMax[!is.na(epsilon_C16.0_phytol_chlorMax$epsilon_C16.0_phytol),],
+            aes(x = date, y = epsilon_C16.0_phytol, color=variable), linewidth=1.25)+
+  scale_color_manual(labels=c(epsilon_C16.0_phytol= "measured",
+                              mean_eps_C16_phytol_phyto = "phyto modeled",
+                              mean_eps_C16_phytol_mix= "phyto&zoo modeled"),
+                     values=c(epsilon_C16.0_phytol="navy",
+                              mean_eps_C16_phytol_phyto = "dodgerblue3" ,
+                              mean_eps_C16_phytol_mix= "turquoise3"),
+                     breaks=c("epsilon_C16.0_phytol", "mean_eps_C16_phytol_phyto", "mean_eps_C16_phytol_mix"))+
+  ylab(expression(epsilon['C16:0-phytol']~("\211")))+ 
+  annotate("text",y= 486.5, x= as.Date("2018-11-15"),label="B", size=15, fontface=2, color="black")+
+  annotate("text",y= 147.5, x= as.Date("2020-05-25"),label=expression(RMSE~"= 69"~"\u2030"), size=10, color="dodgerblue3")+
+  annotate("text",y= 97.5, x= as.Date("2020-05-25"),label=expression(RMSE~"= 67"~"\u2030"), size=10, color="turquoise3")+
+  theme(axis.line.y = element_line(colour = "black"),
+        axis.line.x = element_blank(),
+        plot.title= element_text(size=35, face= "bold"),
+        plot.subtitle= element_text(size=15, color="white"),
+        panel.background = element_blank(),
+        legend.key = element_blank(),
+        legend.text = element_text(size=30, color="black"),
+        legend.text.align = 0,
+        legend.spacing.y = unit(1, "cm"),
+        legend.key.width = unit(2,"cm"),
+        legend.title = element_blank(),
+        axis.text.y = element_text(size=30, color="navy", face="bold"),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = c(1.325,0.65),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_blank(),
+        plot.margin = unit(c(1.5,14.5,0,1), "cm"))+
+  guides(color = guide_legend(byrow = TRUE, override.aes = list(linewidth=3)))
+
+
+pEps_C16.0_sterol_chlorMax <- ggplot()+
+  coord_cartesian(x=as.Date(c("2019-01-30", "2020-02-06")), ylim=c(-115,215), clip="off")+
+  scale_y_continuous(breaks = c(-100,0,100,200))+
+  annotate("rect", xmin = as.Date("2019-04-19") ,xmax = as.Date("2019-04-29"), ymin = -Inf, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-06-14") ,xmax = as.Date("2019-06-24"), ymin = -Inf, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-11-01") ,xmax = as.Date("2019-11-11"), ymin = -Inf, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-11-15") ,xmax = as.Date("2019-11-25"),ymin = -Inf, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2020-01-16") ,xmax = as.Date("2020-01-26"), ymin = -Inf, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  geom_ribbon(data= epsilon_C16.0_sterol_phyto_chlorMax, 
+              aes(x=date, y= mean_eps_C16_sterol_phyto, xmin=min(date), xmax=max(date),
+                  ymin=(mean_eps_C16_sterol_phyto-sd_eps_C16_sterol_phyto),
+                  ymax=(mean_eps_C16_sterol_phyto+sd_eps_C16_sterol_phyto)), fill="slateblue2",
+              alpha=0.15)+
+  geom_ribbon(data= epsilon_C16.0_sterol_mix_chlorMax, 
+              aes(x=date, y= mean_eps_C16_sterol_mix, xmin=min(date), xmax=max(date),
+                  ymin=(mean_eps_C16_sterol_mix-sd_eps_C16_sterol_mix),
+                  ymax=(mean_eps_C16_sterol_mix+sd_eps_C16_sterol_mix)), fill="plum1",
+              alpha=0.25)+
+  geom_line(data= epsilon_C16.0_sterol_phyto_chlorMax, 
+            aes(x=date, y= mean_eps_C16_sterol_phyto, color= variable), linewidth=1)+
+  geom_line(data= epsilon_C16.0_sterol_mix_chlorMax, 
+            aes(x=date, y= mean_eps_C16_sterol_mix, color= variable), linewidth=1)+
+  geom_line(data=epsilon_C16.0_sterol_chlorMax[!is.na(epsilon_C16.0_sterol_chlorMax$epsilon_C16.0_sterol),],
+            aes(x = date, y = epsilon_C16.0_sterol, color=variable), linewidth=1.25)+
+  scale_color_manual(labels=c(epsilon_C16.0_sterol= "measured",
+                              mean_eps_C16_sterol_phyto = "phyto modeled", 
+                              mean_eps_C16_sterol_mix= "phyto&zoo modeled"),
+                     values=c(epsilon_C16.0_sterol="violetred",
+                              mean_eps_C16_sterol_phyto = "slateblue" ,
+                              mean_eps_C16_sterol_mix= "plum3"),
+                     breaks=c("epsilon_C16.0_sterol", "mean_eps_C16_sterol_phyto", "mean_eps_C16_sterol_mix"))+
+  annotate("text",y= -52.5, x= as.Date("2020-05-25"),label=expression(RMSE~"= 78"~"\u2030"), size=10, color="slateblue")+
+  annotate("text",y= -102.5, x= as.Date("2020-05-25"),label=expression(RMSE~"= 78"~"\u2030"), size=10, color="plum3")+
+  ylab(expression(epsilon['C16:0-sterol']~("\211")))+ 
+  theme(axis.line.y = element_line(colour = "black"),
+        axis.line.x = element_blank(),
+        panel.background = element_blank(),
+        legend.key = element_blank(),
+        legend.text = element_text(size=30, color="black"),
+        legend.text.align = 0,
+        legend.spacing.y = unit(1, "cm"),
+        legend.title = element_blank(),
+        legend.key.width = unit(2,"cm"),
+        axis.text.y = element_text(size=30, color="violetred", face="bold"),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = c(1.325,0.65),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_blank(),
+        plot.margin = unit(c(0,14.5,0,1), "cm"))+
+  guides(color = guide_legend(byrow = TRUE, override.aes = list(linewidth=3)))
+
+
+pEps_sterol_phytol_chlorMax <- ggplot()+
+  coord_cartesian(x=as.Date(c("2019-01-30", "2020-02-06")),ylim=c(-15,315), clip="off")+
+  scale_y_continuous(breaks = c(0,100,200,300))+
+  annotate("rect", xmin = as.Date("2019-04-19") ,xmax = as.Date("2019-04-29"), ymin = -30, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-06-14") ,xmax = as.Date("2019-06-24"), ymin = -30, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-11-01") ,xmax = as.Date("2019-11-11"), ymin = -30, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2019-11-15") ,xmax = as.Date("2019-11-25"), ymin = -30, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  annotate("rect", xmin = as.Date("2020-01-16") ,xmax = as.Date("2020-01-26"), ymin = -30, ymax = +Inf, alpha=0.15, fill="seashell3")+
+  geom_ribbon(data= epsilon_sterol_phytol_phyto_chlorMax, 
+              aes(x=date, y= mean_eps_sterol_phytol_phyto, xmin=min(date), xmax=max(date),
+                  ymin=(mean_eps_sterol_phytol_phyto-sd_eps_sterol_phytol_phyto),
+                  ymax=(mean_eps_sterol_phytol_phyto+sd_eps_sterol_phytol_phyto)), fill="chartreuse1",
+              alpha=0.2)+
+  geom_ribbon(data= epsilon_sterol_phytol_mix_chlorMax, 
+              aes(x=date, y= mean_eps_sterol_phytol_mix, xmin=min(date), xmax=max(date),
+                  ymin=(mean_eps_sterol_phytol_mix-sd_eps_sterol_phytol_mix),
+                  ymax=(mean_eps_sterol_phytol_mix+sd_eps_sterol_phytol_mix)), fill="yellow1",
+              alpha=0.25)+
+  geom_line(data= epsilon_sterol_phytol_phyto_chlorMax, 
+            aes(x=date, y= mean_eps_sterol_phytol_phyto, color= variable), linewidth=1)+
+  geom_line(data= epsilon_sterol_phytol_mix_chlorMax, 
+            aes(x=date, y= mean_eps_sterol_phytol_mix, color= variable), linewidth=1)+
+  geom_line(data=epsilon_sterol_phytol_chlorMax[!is.na(epsilon_sterol_phytol_chlorMax$epsilon_sterol_phytol),],
+            aes(x = date, y = epsilon_sterol_phytol, color=variable), linewidth=1.25)+
+  scale_color_manual(labels=c(epsilon_sterol_phytol= "measured",
+                              mean_eps_sterol_phytol_phyto = "phyto modeled",
+                              mean_eps_sterol_phytol_mix= "phyto&zoo modeled"),
+                     values=c(epsilon_sterol_phytol="springgreen4",
+                              mean_eps_sterol_phytol_phyto = "chartreuse2" ,
+                              mean_eps_sterol_phytol_mix= "yellow2"),
+                     breaks=c("epsilon_sterol_phytol", "mean_eps_sterol_phytol_phyto", "mean_eps_sterol_phytol_mix"))+
+  annotate("text",y= 47.5, x= as.Date("2020-05-25"),label=expression(RMSE~"= 44"~"\u2030"), size=10, color="chartreuse2")+
+  annotate("text",y= -2.5, x= as.Date("2020-05-25"),label=expression(RMSE~"= 52"~"\u2030"), size=10, color="yellow3")+
+  ylab(expression(epsilon['sterol-phytol']~("\211")))+ 
+  theme(axis.line = element_line(colour = "black"),
+        panel.background = element_blank(),
+        legend.key = element_blank(),
+        legend.text = element_text(size=30, color="black"),
+        legend.text.align = 0,
+        legend.spacing.y = unit(1, "cm"),
+        legend.title = element_blank(),
+        legend.key.width = unit(2,"cm"),
+        axis.text.y = element_text(size=30, color="springgreen4", face="bold"),
+        axis.text.x = element_text(size=30, color="black", face="bold"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = c(1.325,0.65),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_blank(),
+        plot.margin = unit(c(0,14.5,0.5,1), "cm"))+
+  guides(color = guide_legend(byrow = TRUE, override.aes = list(linewidth=3)))
+
+
+pEpsilon_lipid1.2_chlorMax <- plot_grid(pEps_C16.0_phytol_chlorMax, pEps_C16.0_sterol_chlorMax, pEps_sterol_phytol_chlorMax, 
+                                        ncol=1, rel_heights = c(1.375,1,1.1),align="v", axis='lr')
+
+
+Fig6 <- plot_grid(pEpsilon_lipid1.2_surface, pEpsilon_lipid1.2_chlorMax, ncol=2,rel_widths = c(0.7,1), align="h")
+
+```
+
+## Fig.6 
+
+```{r, fig.width = 27.5, fig.height = 15, echo=FALSE}
+
+plot(Fig6)
+
+```
+
