@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #loading packages
 
 library(readr)
+library(here)
 library(ggplot2)
 library(dplyr)
 library(cowplot)
@@ -21,41 +22,41 @@ Sys.setlocale("LC_ALL", "English")
 
 ## seasonal and yearly epsilon lipid1/lipid2 values
 
-Avg.epsilon_lipid1.2 <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\weighted_avg_epsilon_lipid1_lipid2_ROT19.csv",
+Avg.epsilon_lipid1.2 <- read.csv(here("01_Data","weighted_avg_epsilon_lipid1_lipid2_ROT19.csv"),
                                   header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 ## seasonal and yearly phytoplankton relative biovolume 
 
-phytoplankton_Avg.rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\weighted_avg_phytoplankton_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+phytoplankton_Avg.rel.bioVol <- read.csv(here("01_Data","weighted_avg_phytoplankton_biovolume_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 ## seasonal and yearly phytoplankton & microzooplankton relative biovolume 
 
-phyto.microplankton_Avg.rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\weighted_avg_phyto_microplankton_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+phyto.microplankton_Avg.rel.bioVol <- read.csv(here("01_Data","weighted_avg_phyto_microplankton_biovolume_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 ## seasonal and yearly eukaryotic algae relative biovolume 
 
-eukary.algae_Avg.rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\weighted_avg_eukaryotic_algae_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+eukary.algae_Avg.rel.bioVol <- read.csv(here("01_Data","weighted_avg_eukaryotic_algae_biovolume_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 ## seasonal and yearly eukaryotic algae & microzooplankton relative biovolume 
 
-eukary.algae.microplankton_Avg.rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\weighted_avg_eukaryotic_algae_microplankton_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+eukary.algae.microplankton_Avg.rel.bioVol <- read.csv(here("01_Data","weighted_avg_eukaryotic_algae_microplankton_biovolume_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 ## seasonal and yearly d2H water values
 
-Avg.d2H.water <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\avg_d2H_H2O_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+Avg.d2H.water <- read.csv(here("01_Data","avg_d2H_H2O_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 
 #import data (reference data)
 
 ## alpha lipid/water values algal culturing studies (Ladd et al., 2024) [https://doi.org/10.5061/dryad.nvx0k6f0v]
 
-alpha_lipid_cultures <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\alpha_lipid_water_algae_cultures_Ladd_etal_2024.csv",
+alpha_lipid_cultures <- read.csv(here("02_Reference_data","alpha_lipid_water_algae_cultures_Ladd_etal_2024.csv"),
                                   header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 
 ## d2H C16:0 values from seston and zooplankton (Pilecky et al., 2022) [https://doi.org/10.1111/1365-2435.13981]
 
-d2H_C16.0_seston_zoo <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\d2H_C16.0_FieldStudy_Pilecky_etal_2022.csv",
+d2H_C16.0_seston_zoo <- read.csv(here("02_Reference_data","d2H_C16.0_FieldStudy_Pilecky_etal_2022.csv"),
                                   header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 
