@@ -19,7 +19,7 @@ Sys.setlocale("LC_ALL", "English")
 
 #import d2H data
 
-d2H_H2O_lipids <- read.csv (here("01_Data","d2H_H2O_lipids_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+d2H_H2O_lipids <- read.csv(here("01_Data","d2H_H2O_lipids_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 
 #note: data frame includes two different depths: surface water (A) and chlorophyll maximum depth (B)
