@@ -11,11 +11,12 @@ knitr::opts_chunk$set(echo = TRUE)
 #loading packages
 
 library(readr)
+library(here)
 library(ggplot2)
 library(vegan)
 library(ggvegan)
 
-TN_TP_Temp_relBio_phytoplankton <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\TN_TP_Temp_relBio_phytoplankton_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+TN_TP_Temp_relBio_phytoplankton <- read.csv(here("01_Data","TN_TP_Temp_relBio_phytoplankton_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 TN_TP_Temp_relBio_phyto_woNA <- na.omit(TN_TP_Temp_relBio_phytoplankton)
 
@@ -39,7 +40,7 @@ hist(env_data$Total_Phosphor_ugL)
 hist(log(env_data$Total_Phosphor_ugL))
 hist(env_data$Temp_C)
 
-#log-transformation TP 
+#log-transformation TP due to skewed distribution
 
 env_data2 <- cbind.data.frame(env_data$Total_Nitrogen_mgL, env_data$Temp_C, log(env_data$Total_Phosphor_ugL))
 
@@ -82,7 +83,7 @@ anova(rda.env.phyto, by= "axis", perm=500)
 ```{r}
 
 
-#extract RDA species and site scores by "scores"function
+#extract RDA species and site scores by "scores" function
 
 rda_sites <- as.data.frame(scores(rda.env.phyto, display="sites"))
 rda_species <- as.data.frame(scores(rda.env.phyto, display="species"))                          
