@@ -1,0 +1,141 @@
+---
+title: "S07-NMDS-lipid-distributions_vs_cyanobacteria-biovolume"
+author: "Antonia_Klatt"
+date: "2024-08-07"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+#loading packages 
+
+library(vegan)
+library(readr)
+library(ggplot2)
+library(reshape2)
+library(cowplot)
+
+#import lipid concentration data with duplopterol (relative concentrations)
+
+rel_lipid_conc_cyano <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\Rel_lipid_conc_cyanobacteria_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+#note: data frame includes two different depths: surface water (A) and chlorophyll maximum depth (B)
+
+#note: lipid concentrations are sorted by dates of increasing cyanobacterial biovolume
+
+```
+
+## NMDS alcohols
+
+```{r}
+
+alcohols_cyano <- rel_lipid_conc_cyano[,2:7]
+
+rownames(alcohols_cyano) <- rel_lipid_conc_cyano$sample
+
+meta.alcohols.cyano <-metaMDS(na.omit(alcohols_cyano), autotransform=FALSE, distance="bray", k=3, try= 100, trymax= 100)
+
+```
+
+## NMDS fatty acids
+
+```{r}
+
+FA_cyano <- rel_lipid_conc_cyano[,8:18]
+
+#use square root transformed fatty acid data as 'arch/horseshoe' is produced with untransformed data
+
+meta.FA.cyano <-metaMDS(sqrt(na.omit(FA_cyano)), distance="bray", autotransform=FALSE, k=3, try= 100, trymax= 100)
+
+```
+## plotting NMDS 
+
+```{r}
+
+#extract NMDS scores for plotting
+
+## NMDS scores alcohols
+
+NMDS_cyano_alcohols_sample <- as.data.frame(scores(meta.alcohols.cyano, "sites")) 
+
+NMDS_cyano_alcohols_species <- as.data.frame(scores(meta.alcohols.cyano, "species")) 
+
+rownames(NMDS_cyano_alcohols_species) <- c("brassicasterol","diplopterol", "ergosterol", "sitosterol", "stigmasterol", "phytol")
+
+
+## NMDS scores fatty acids
+
+NMDS_cyano_FA_sample <- as.data.frame(scores(meta.FA.cyano, "sites"))  
+
+NMDS_cyano_FA_species <- as.data.frame(scores(meta.FA.cyano, "species")) 
+
+rownames(NMDS_cyano_FA_species) <- c("C14:0", "C16:1", "C16:0", "C18:3nx", "C18:2",
+                                     "C18:x", "C18:1", "C18:0", "C20:3nx", "C20:4", "C22:6")
+
+
+#generating vectors for cyanobacteria biovolume category 
+
+## NA values for alcohol and FA concentrations on different sampling dates -> two different vectors
+
+cyano_cat1 <- c(rep(0,10), rep(9,18), rep(11,6), rep(31,7),  rep(61,3), rep(81,2)) #alcohols
+
+cyano_cat2 <- c(rep(0,10), rep(9,19), rep(11,7), rep(31,7),  rep(61,3), rep(81,2)) #fatty acids
+
+
+pNMDS_cyano_alcohols <- ggplot() + ggtitle("NMDS relative alcohol concentrations", subtitle="stress: 0.055" )+
+  geom_text(data=NMDS_cyano_alcohols_species,aes(x=NMDS1,y=-1*NMDS2), label= rownames(NMDS_cyano_alcohols_species), size= 10) +  
+  geom_point(data=NMDS_cyano_alcohols_sample, aes(x=NMDS1,y=-1*NMDS2, size= cyano_cat1), colour= "cyan4", alpha=0.3)+ 
+  scale_size(name=expression(bold(italic("Cyanophyceae")~"(% algal biovolume)")), range = c(2,70), breaks= c(0,7,11,25,50,70),
+             labels=c("0%","<10%",">10%",">30%", ">60%", ">80%"))+
+  xlab("NMDS1")+ylab("NMDS2")+
+  annotate("text",x=-1.2,y=1.2,label="A", size=15, fontface=2, color="black")+
+  coord_cartesian(ylim=c(-0.9,0.9), xlim=c(-0.9,0.9),clip="off")+
+  theme(axis.line = element_line(colour = "black"), 
+        panel.background = element_blank(),
+        legend.key=element_rect(fill="white"),
+        plot.title = element_blank(),
+        plot.subtitle = element_text(size=30, face="bold"),
+        legend.text=element_text(size=30),
+        legend.title=element_text(size=30, face= "bold"),
+        axis.text.x = element_text(size=30, face= "bold", color="black"),
+        axis.text.y = element_text(size=30, face= "bold", color="black"),
+        axis.title.x = element_text(size = 30, face= "bold"),
+        axis.title.y = element_text(size = 30, face= "bold"),
+        plot.margin = unit(c(2,1,1,1), "cm"))
+
+
+
+pNMDS_cyano_FA <-ggplot() + ggtitle("NMDS relative FA concentrations", subtitle="stress: 0.078" )+
+  geom_text(data=NMDS_cyano_FA_species,aes(x=NMDS1,y=NMDS2), label= rownames(NMDS_cyano_FA_species), size= 10) + 
+  geom_point(data=NMDS_cyano_FA_sample, aes(x=NMDS1,y=NMDS2, size= cyano_cat2), colour= "cyan4", alpha=0.3)+ 
+  scale_size(name="cyanobacteria (% algal biovolume)", range = c(2,70), breaks= c(2,3,7,11,25,50,70),
+             labels=c("0%","<5%","<10%",">10%",">30%", ">60%", ">90%"))+
+  annotate("text",x=-1.2,y=1.2,label="B", size=15, fontface=2, color="black")+
+  coord_cartesian(ylim=c(-0.9,0.9), xlim=c(-0.9,0.9),clip="off")+
+  xlab("NMDS1")+ylab("NMDS2")+
+  theme(axis.line = element_line(colour = "black"), 
+        panel.background = element_blank(),
+        legend.position="none",
+        plot.title = element_blank(),
+        plot.subtitle = element_text(size=30, face="bold"),
+        #legend.text=element_text(size=30),
+        #legend.title=element_text(size=30, face= "bold"),
+        axis.text.x = element_text(size=30, face= "bold", color="black"),
+        axis.text.y = element_text(size=30, face= "bold", color="black"),
+        axis.title.x = element_text(size = 30, face= "bold"),
+        axis.title.y = element_text(size = 30, face= "bold"),
+        plot.margin = unit(c(1.5,1,1,1), "cm"))
+
+FigS9 <- plot_grid(pNMDS_cyano_alcohols, pNMDS_cyano_FA, ncol=1, align="v", axis="lr")
+
+```
+
+## Fig. S9
+
+```{r, fig.width = 20, fig.height = 20, echo=FALSE}
+
+plot(FigS9)
+
+```
+

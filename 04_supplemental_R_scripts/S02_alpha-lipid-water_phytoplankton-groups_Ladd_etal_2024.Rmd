@@ -1,0 +1,338 @@
+---
+title: "S02_alpha-lipid-water_phytoplankton-groups"
+author: "Antonia_Klatt"
+date: "2024-08-01"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+#loading packages
+
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(cowplot)
+
+Sys.setlocale("LC_ALL", "English")
+
+#import data (reference data)
+
+## alpha lipid/water values algal culturing studies
+
+#Ladd, et al. (2024): Taxon-specific hydrogen isotope signals in cultures and mesocosms facilitate ecosystem and hydroclimate reconstruction. doi: https://doi.org/10.31223/X57T30 
+
+alpha_lipid_cultures <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\alpha_lipid_water_algae_cultures_Ladd_etal_2024.csv",
+                                  header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+```
+
+## Monte Carlo simulation of alpha lipid/water values for each lipid and phytoplankton group
+
+```{r}
+
+# assuming a normal distribution (N) with mean and SD of alpha lipid/water values from algal cultures (Ladd et al., 2024) (n= 50,000)
+
+#N(alpha C16:0-water) 
+
+## cyanobacteria 
+
+mean_alpha_C16_water_cyano <- alpha_lipid_cultures[1:1,2:2]
+sd_alpha_C16_water_cyano <- alpha_lipid_cultures[1:1,3:3]
+
+norm_cyano_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_cyano , sd= sd_alpha_C16_water_cyano)
+
+## green algae (GA)
+
+mean_alpha_C16_water_GA <- alpha_lipid_cultures[2:2,2:2]
+sd_alpha_C16_water_GA <- alpha_lipid_cultures[2:2,3:3]
+
+norm_GA_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_GA , sd= sd_alpha_C16_water_GA)
+norm_GA_alpha_C16_water.df <- as.data.frame(norm_GA_alpha_C16_water)
+
+## Diatoms
+
+mean_alpha_C16_water_dia <- alpha_lipid_cultures[3:3,2:2]
+sd_alpha_C16_water_dia <- alpha_lipid_cultures[3:3,3:3]
+
+norm_dia_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_dia , sd= sd_alpha_C16_water_dia)
+norm_dia_alpha_C16_water.df <- as.data.frame(norm_dia_alpha_C16_water)
+
+## Dinoflagellates
+
+mean_alpha_C16_water_dino <- alpha_lipid_cultures[4:4,2:2]
+sd_alpha_C16_water_dino <- alpha_lipid_cultures[4:4,3:3]
+
+norm_dino_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_dino , sd= sd_alpha_C16_water_dino)
+norm_dino_alpha_C16_water.df <- as.data.frame(norm_dino_alpha_C16_water)
+
+## Chrysophyta <- based on mean and SD of d2H C16:0 values of diatoms and dinoflagellates 
+
+mean_alpha_C16_water_chryso <- alpha_lipid_cultures[5:5,2:2]
+sd_alpha_C16_water_chryso <- alpha_lipid_cultures[5:5,3:3]
+
+norm_chryso_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_chryso , sd= sd_alpha_C16_water_chryso)
+norm_chryso_alpha_C16_water.df <- as.data.frame(norm_chryso_alpha_C16_water)
+
+## Cryptomonads
+
+mean_alpha_C16_water_crypto <- alpha_lipid_cultures[6:6,2:2]
+sd_alpha_C16_water_crypto <- alpha_lipid_cultures[6:6,3:3]
+
+norm_crypto_alpha_C16_water <- rnorm(50000, mean= mean_alpha_C16_water_crypto , sd= sd_alpha_C16_water_crypto)
+norm_crypto_alpha_C16_water.df <- as.data.frame(norm_crypto_alpha_C16_water)
+
+
+#N(alpha phytol-water)
+
+## cyanobacteria 
+
+mean_alpha_phytol_water_cyano <- alpha_lipid_cultures[1:1,4:4]
+sd_alpha_phytol_water_cyano <- alpha_lipid_cultures[1:1,5:5]
+
+norm_cyano_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_cyano , sd= sd_alpha_phytol_water_cyano)
+norm_cyano_alpha_phytol_water.df <- as.data.frame(norm_cyano_alpha_phytol_water)
+
+## green algae (GA)
+
+mean_alpha_phytol_water_GA <- alpha_lipid_cultures[2:2,4:4]
+sd_alpha_phytol_water_GA <- alpha_lipid_cultures[2:2,5:5]
+
+norm_GA_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_GA , sd= sd_alpha_phytol_water_GA)
+norm_GA_alpha_phytol_water.df <- as.data.frame(norm_GA_alpha_phytol_water)
+
+## Diatoms
+
+mean_alpha_phytol_water_dia <- alpha_lipid_cultures[3:3,4:4]
+sd_alpha_phytol_water_dia <- alpha_lipid_cultures[3:3,5:5]
+
+norm_dia_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_dia , sd= sd_alpha_phytol_water_dia)
+norm_dia_alpha_phytol_water.df <- as.data.frame(norm_dia_alpha_phytol_water)
+
+## Dinoflagellates
+
+mean_alpha_phytol_water_dino <- alpha_lipid_cultures[4:4,4:4]
+sd_alpha_phytol_water_dino <- alpha_lipid_cultures[4:4,5:5]
+
+norm_dino_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_dino , sd= sd_alpha_phytol_water_dino)
+norm_dino_alpha_phytol_water.df <- as.data.frame(norm_dino_alpha_phytol_water)
+
+## Chrysophyta <- based on mean and SD of d2H phytol values of diatoms and dinoflagellates
+
+mean_alpha_phytol_water_chryso <- alpha_lipid_cultures[5:5,4:4]
+sd_alpha_phytol_water_chryso <- alpha_lipid_cultures[5:5,5:5]
+
+norm_chryso_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_chryso , sd= sd_alpha_phytol_water_chryso)
+norm_chryso_alpha_phytol_water.df <- as.data.frame(norm_chryso_alpha_phytol_water)
+
+## Cryptomonads
+
+mean_alpha_phytol_water_crypto <- alpha_lipid_cultures[6:6,4:4]
+sd_alpha_phytol_water_crypto <- alpha_lipid_cultures[6:6,5:5]
+
+norm_crypto_alpha_phytol_water <- rnorm(50000, mean= mean_alpha_phytol_water_crypto , sd= sd_alpha_phytol_water_crypto)
+norm_crypto_alpha_phytol_water.df <- as.data.frame(norm_crypto_alpha_phytol_water)
+
+
+#N(alpha sterol-water)
+
+## cyanobacteria #NA #no sterols
+
+## green algae (GA)
+
+mean_alpha_sterol_water_GA <- alpha_lipid_cultures[2:2,6:6]
+sd_alpha_sterol_water_GA <- alpha_lipid_cultures[2:2,7:7]
+
+norm_GA_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_GA , sd= sd_alpha_sterol_water_GA)
+norm_GA_alpha_sterol_water.df <- as.data.frame(norm_GA_alpha_sterol_water)
+
+## Diatoms
+
+mean_alpha_sterol_water_dia <- alpha_lipid_cultures[3:3,6:6]
+sd_alpha_sterol_water_dia <- alpha_lipid_cultures[3:3,7:7]
+
+norm_dia_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_dia , sd= sd_alpha_sterol_water_dia)
+norm_dia_alpha_sterol_water.df <- as.data.frame(norm_dia_alpha_sterol_water)
+
+## Dinoflagellates
+
+mean_alpha_sterol_water_dino <- alpha_lipid_cultures[4:4,6:6]
+sd_alpha_sterol_water_dino <- alpha_lipid_cultures[4:4,7:7]
+
+norm_dino_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_dino , sd= sd_alpha_sterol_water_dino)
+norm_dino_alpha_sterol_water.df <- as.data.frame(norm_dino_alpha_sterol_water)
+
+## Chrysophyta <- based on mean and SD of d2H sterol values of diatoms and dinoflagellates  
+
+mean_alpha_sterol_water_chryso <- alpha_lipid_cultures[5:5,6:6]
+sd_alpha_sterol_water_chryso <- alpha_lipid_cultures[5:5,7:7]
+
+norm_chryso_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_chryso , sd= sd_alpha_sterol_water_chryso)
+norm_chryso_alpha_sterol_water.df <- as.data.frame(norm_chryso_alpha_sterol_water)
+
+## Cryptomonads
+
+mean_alpha_sterol_water_crypto <- alpha_lipid_cultures[6:6,6:6]
+sd_alpha_sterol_water_crypto <- alpha_lipid_cultures[6:6,7:7]
+
+norm_crypto_alpha_sterol_water <- rnorm(50000, mean= mean_alpha_sterol_water_crypto , sd= sd_alpha_sterol_water_crypto)
+norm_crypto_alpha_sterol_water.df <- as.data.frame(norm_crypto_alpha_sterol_water)
+
+```
+
+## plotting density plots alpha lipid/water values for each lipid and phytoplankton group
+
+```{r}
+
+#R C16:0 
+
+C16_norm_all <- c(norm_cyano_alpha_C16_water,
+                  norm_GA_alpha_C16_water,
+                  norm_chryso_alpha_C16_water,
+                  norm_dia_alpha_C16_water,
+                  norm_dino_alpha_C16_water,
+                  norm_crypto_alpha_C16_water)
+
+
+
+phyto_grouping <- c(rep("cyano", 50000),rep("GA", 50000), rep("chryso", 50000), rep("dia", 50000),rep("dino", 50000), rep("crypto", 50000) )
+
+df_C16_norm_group <- data.frame(C16_norm_all, phyto_grouping)
+
+norm_C16_phyto <-ggplot(df_C16_norm_group) +
+  geom_density(aes(x = C16_norm_all, fill= phyto_grouping), alpha=0.175)+
+  scale_fill_manual(labels=c(cyano="Cyanophyceae", GA= "Chlorophyceae", chryso= "Chrysophyceae", 
+                             dia= "Bacillariophyceae",  dino= "Dinophyceae", crypto= "Cryptophyceae"), 
+                    values= c(cyano="cyan4", GA="forestgreen", chryso="darkgoldenrod1",
+                              dia= "blue" ,dino= "magenta", crypto= "gray56"),
+                    name= "phytoplankton group",
+                    breaks= c("dia", "GA", "chryso","crypto", "cyano", "dino"))+
+  xlab(expression(alpha^{2}*""['C16:0/water']~("\211")))+ylab("density")+
+  coord_cartesian(xlim=c(0.6,1.1), ylim=c(0,27),clip="off")+
+  scale_y_continuous(breaks=c(5,10,15,20,25))+
+  annotate("text",y= 27, x= 0.6,label="A", size=15, fontface=2, color="black")+
+  theme(axis.line = element_line(colour = "black"),
+        legend.position="none",
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        axis.text.x = element_text(face='bold', color="black", size=30),
+        axis.text.y = element_text(face='bold', color='black', size=30),
+        #legend.title = element_text(size=30, face= "bold"),
+        #legend.background=element_blank(),
+        #legend.key=element_rect(fill="white"),
+        #legend.text=element_text(size=30),
+        #legend.text.align = 0,
+        strip.placement = "outside",
+        strip.background = element_blank(),
+        axis.title.y = element_text(color='black', size = 30, face="bold"),
+        axis.title.x = element_text(color='black', size = 30, face="bold"),
+        plot.margin = unit(c(0.5,0.25,0.5,0.5), "cm"))
+
+
+#R sterol
+
+sterol_norm_all <- c(norm_GA_alpha_sterol_water,
+                     norm_chryso_alpha_sterol_water,
+                     norm_dia_alpha_sterol_water,
+                     norm_dino_alpha_sterol_water,
+                     norm_crypto_alpha_sterol_water)
+
+
+
+eukary_grouping <- c(rep("GA", 50000), rep("chryso", 50000), rep("dia", 50000),rep("dino", 50000), rep("crypto", 50000) )
+
+df_sterol_norm_group <- data.frame(sterol_norm_all, eukary_grouping)
+
+norm_sterol_phyto <-ggplot(df_sterol_norm_group) +
+  geom_density(aes(x = sterol_norm_all, fill= eukary_grouping), alpha=0.175)+
+  scale_fill_manual(labels=c(cyano="Cyanophyceae", GA= "Chlorophyceae", chryso= "Chrysophyceae", 
+                             dia= "Bacillariophyceae",  dino= "Dinophyceae", crypto= "Cryptophyceae"), 
+                    values= c(cyano="cyan4", GA="forestgreen", chryso="darkgoldenrod1",
+                              dia= "blue" ,dino= "magenta", crypto= "gray56"),
+                    name= "phytoplankton group",
+                    breaks= c("dia", "GA", "chryso","crypto", "cyano", "dino"))+
+  ylab("density") + xlab(expression(alpha^{2}*""['sterol/water']~("\211")))+ 
+  coord_cartesian(xlim=c(0.5,1), ylim=c(0,27),clip="off")+
+  scale_y_continuous(breaks=c(5,10,15,20,25))+
+  annotate("text",y= 27, x= 0.5,label="B", size=15, fontface=2, color="black")+
+  theme(axis.line = element_line(colour = "black"),
+        legend.position="none",
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        axis.text.x = element_text(face='bold', color="black", size=30),
+        axis.text.y = element_text(face='bold', color='black', size=30),
+        #legend.title = element_text(size=30, face= "bold"),
+        #legend.background=element_blank(),
+        #legend.key=element_rect(fill="white"),
+        #legend.text=element_text(size=30),
+        #legend.text.align = 0,
+        strip.placement = "outside",
+        strip.background = element_blank(),
+        axis.title.y = element_blank(),
+        axis.title.x = element_text(color='black', size = 30, face="bold"),
+        plot.margin = unit(c(0.5,0.25,0.5,0.25), "cm"))
+
+
+
+#R phytol
+
+phytol_norm_all <- c(norm_cyano_alpha_phytol_water,
+                     norm_GA_alpha_phytol_water,
+                     norm_chryso_alpha_phytol_water,
+                     norm_dia_alpha_phytol_water,
+                     norm_dino_alpha_phytol_water,
+                     norm_crypto_alpha_phytol_water)
+
+
+
+phyto_grouping <- c(rep("cyano", 50000),rep("GA", 50000), rep("chryso", 50000), rep("dia", 50000),rep("dino", 50000), rep("crypto", 50000) )
+
+df_phytol_norm_group <- data.frame(phytol_norm_all, phyto_grouping)
+
+norm_phytol_phyto <-ggplot(df_phytol_norm_group) +
+  geom_density(aes(x = phytol_norm_all, fill= phyto_grouping), alpha=0.175)+
+  scale_fill_manual(labels=c(cyano=expression(italic("Cyanophyceae")), GA= "green algae", 
+                             chryso= expression(italic("Chrysophyceae")), 
+                             dia= expression(italic("Bacillariophyceae")),  dino= expression(italic("Dinophyceae")), 
+                             crypto= expression(italic("Cryptophyceae"))), 
+                    values= c(cyano="cyan4", GA="forestgreen", chryso="darkgoldenrod1",
+                              dia= "blue" ,dino= "magenta", crypto= "gray56"),
+                    name= "phytoplankton",
+                    breaks= c("dia", "chryso","crypto", "cyano", "dino", "GA"))+
+  ylab("density") + xlab(expression(alpha^{2}*""['phytol/water']~("\211")))+ 
+  coord_cartesian(xlim=c(0.4,0.9), ylim=c(0,27),clip="off")+
+  scale_y_continuous(breaks=c(5,10,15,20,25))+
+  annotate("text",y= 27, x= 0.4,label="C", size=15, fontface=2, color="black")+
+  theme(axis.line = element_line(colour = "black"),
+        legend.position="right",
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        axis.text.x = element_text(face='bold', color="black", size=30),
+        axis.text.y = element_text(face='bold', color='black', size=30),
+        legend.title = element_text(size=30, face= "bold"),
+        legend.background=element_blank(),
+        legend.key=element_rect(fill="white"),
+        legend.text=element_text(size=30),
+        legend.text.align = 0,
+        legend.spacing.y = unit(0.5, "cm"),
+        strip.placement = "outside",
+        strip.background = element_blank(),
+        axis.title.y = element_blank(),
+        axis.title.x = element_text(color='black', size = 30, face="bold"),
+        plot.margin = unit(c(0.5,0.25,0.5,0.25), "cm"))+
+  guides(fill = guide_legend(byrow = TRUE))
+
+
+FigS2 <- plot_grid(norm_C16_phyto, norm_sterol_phyto, norm_phytol_phyto, ncol=3, align="h", rel_widths = c(1,0.95,1.45))
+
+```
+
+## Fig. S2
+
+```{r, fig.width = 30, fig.height = 7.5, echo=FALSE}
+
+plot(FigS2)
+
+```
+

@@ -1,0 +1,157 @@
+---
+title: "S08_RDA_TN-TP-Temp_vs_phytoplankton-biovolume"
+author: "Antonia_Klatt"
+date: "2024-08-07"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+#loading packages
+
+library(readr)
+library(ggplot2)
+library(vegan)
+library(ggvegan)
+
+TN_TP_Temp_relBio_phytoplankton <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\TN_TP_Temp_relBio_phytoplankton_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+TN_TP_Temp_relBio_phyto_woNA <- na.omit(TN_TP_Temp_relBio_phytoplankton)
+
+#extracting species and env-data
+env_data <- TN_TP_Temp_relBio_phyto_woNA[,2:4]
+phyto_species_data <- TN_TP_Temp_relBio_phyto_woNA[,5:10]
+
+#check correlation of TN, TP, Temp
+
+cor.test(env_data$Total_Nitrogen_mgL, env_data$Total_Phosphor_ugL) #cor 0.5031339 p-value = 0.0004272
+cor.test(env_data$Total_Nitrogen_mgL, env_data$Temp_C) #cor -0.6462435 p-value = 1.627e-06
+cor.test(env_data$Temp_C, env_data$Total_Phosphor_ugL) #cor -0.4600458 p-value = 0.001475
+
+```
+```{r, echo= FALSE}
+
+#check if TN, TP, Temp are normally distributed
+
+hist(env_data$Total_Nitrogen_mgL)
+hist(env_data$Total_Phosphor_ugL)
+hist(log(env_data$Total_Phosphor_ugL))
+hist(env_data$Temp_C)
+
+#log-transformation TP 
+
+env_data2 <- cbind.data.frame(env_data$Total_Nitrogen_mgL, env_data$Temp_C, log(env_data$Total_Phosphor_ugL))
+
+colnames(env_data2) <- c("TN", "T", "TP")
+``` 
+```{r, echo= TRUE}
+#DCA PCA CA
+#checking SD of DCA axis to check the distribution
+#calculates a DCA based on  square root transformed species data with no downweighting of rare taxa
+ord.dca<-decorana(sqrt(phyto_species_data))
+
+#provides a very short summary of the ordination results
+ord.dca
+
+#DCA axis 1 axis lenght is  1.797
+#between 1.5 and 3 SD units: linear and unimodal methods appropriate
+#< 2 SD: linear methods
+#> 2 SD: unimodal methods
+
+#do rda instead of cca -> direct gradient analysis as correspondance of PCA (linear relationship (see DCA))
+
+rda.env.phyto <-rda(sqrt(phyto_species_data)~., data=env_data2, scale= FALSE)
+
+#Calculate how much variance is explained by all variables together in the species data. Is this significant at the P=0.05 level? 
+
+summary(rda.env.phyto) #Cumulative proportion: 19.85 % (3 variables -> cumulative proportion of RDA3)
+
+anova(rda.env.phyto, perm=999) #Model     3   5.8832 3.3854  0.001 *** -> variance explained is significant
+
+#How many significant axes are there? 
+
+anova(rda.env.phyto, by= "axis", perm=500)
+
+#only RDA axis 1 is significant
+
+```
+
+## plotting RDA
+
+```{r}
+
+
+#extract RDA species and site scores by "scores"function
+
+rda_sites <- as.data.frame(scores(rda.env.phyto, display="sites"))
+rda_species <- as.data.frame(scores(rda.env.phyto, display="species"))                          
+                        
+#Biplot scores for constraining variables from summary(rda.env.phyto) 
+
+#                          RDA1    RDA2    RDA3 
+#Total_Nitrogen_mgL     -0.7295 -0.1268 -0.6721  
+#Temp_C                  0.6642 -0.6531  0.3639   
+#log_Total_Phosphor_ugL  0.1109  0.4270 -0.8974    
+
+
+rda1_env <- c(-0.7295,  0.6642, 0.1109)
+  
+rda2_env <- c(-0.1268,  -0.6531 , 0.4270)
+                           
+rda_envVar <- cbind.data.frame(rda1_env, rda2_env)
+
+colnames(rda_envVar) <- c("RDA1", "RDA2")
+
+rownames(rda_envVar) <- c("Total Nitrogen", "Temperature", "Total Phosphorus")
+
+
+pRDA1 <- autoplot(rda.env.phyto, arrows = FALSE, geom = c("point", "text"))+
+  scale_size_manual(values=30)+
+  scale_color_manual(values=c("white","white" ))+
+  ylim(-4.5,4.5) + xlim(-4.5,4.5)+
+  theme(axis.line = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        legend.key=element_rect(fill="white"),
+        plot.title = element_blank(),
+        plot.subtitle = element_blank(),
+        legend.position="none",
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank())
+
+
+FigS10 <- pRDA1 + 
+  geom_hline(yintercept = 0, linetype="dotted", size=0.35)+ 
+  geom_vline(xintercept=0, linetype="dotted", size=0.35)+
+  geom_point(data= rda_sites, aes(x=RDA1, y=RDA2), shape=1, color= "black", size=2.5)+
+  geom_text(data=rda_species, aes(x=RDA1, y=RDA2), label= c(expression(italic("Cyanophyceae")),
+                                                           "green algae",
+                                                           expression(italic("Chrysophyceae")),
+                                                           expression(italic("Bacillariophyceae")),
+                                                           expression(italic("Dinophyceae")),
+                                                           expression(italic("Cryptophyceae"))), size= 4, 
+            color= c("cyan4", "green3", "darkgoldenrod2", "gray35","salmon", "maroon4" ))+
+  ylim(-4.5,4.5) + xlim(-4.5,4.5)+ xlab("RDA1")+ ylab("RDA2")+
+  theme(axis.line = element_line(colour = "black", linewidth= 0.2), 
+        panel.background = element_blank(),
+        panel.border = element_rect(color= "black", fill=NA, size=0.2),
+        legend.key=element_rect(fill="white"),
+        legend.position="none",
+        axis.text.x = element_text(size=12.5, face= "bold", color="black"),
+        axis.text.y = element_text(size=12.5, face= "bold", color="black"),
+        axis.title.x = element_text(size = 12.5, face= "bold"),
+        axis.title.y = element_text(size = 12.5, face= "bold"),
+        plot.margin = unit(c(0,0.5,0,0.25), "cm"))
+
+```
+
+## Fig. S10
+
+```{r, fig.width = 6, fig.height = 6, echo=FALSE}
+
+plot(FigS10)
+
+```

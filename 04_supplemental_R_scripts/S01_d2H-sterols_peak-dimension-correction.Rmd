@@ -1,0 +1,110 @@
+---
+title: "S01_d2H-sterol_peak-dimension-correction"
+author: "Antonia_Klatt"
+date: "2024-08-01"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readr)
+library(ggplot2)
+library(reshape2)
+library(cowplot)
+
+Sys.setlocale("LC_ALL", "English")
+
+#import data
+
+d2H_cholOAc_stigmaOAc <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\Rotsee\\Rotsee2019 Water column\\Correlations\\Files for R\\files_Rotsee_watercolumn_1920\\d2Hm_d2Hreal_cholOAc_stigmaOAc.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+colnames(d2H_cholOAc_stigmaOAc) <- c("variable", "peak_area",  "d2H.1H", "epsilon_d2Hmeasured.d2Hreal")
+
+#additional information
+
+#logarithmic stat smooth equation according to excel: 
+#y = -23.21ln(x) + 103
+
+
+#d2H calibrated of cholesterol actetae by TCEA-IRMS: 	-287.3 permill
+#d2H calibrated of stigmasterol actetae (mean of 3 measurements with peak area of >40 (see below); excluding pek area >100 Vs)	-253.3543333 permill
+
+```
+
+## plotting d2H measured vs. d2H calibrated
+
+```{r}
+
+pd2H_peakArea <- ggplot() + 
+  geom_hline(yintercept=-287.3, color="maroon", linetype="dashed", linewidth=1)+
+  geom_hline(yintercept=-253.3543, color="blueviolet", linetype="dashed", linewidth=1)+
+  geom_point(data= d2H_cholOAc_stigmaOAc, aes(x=peak_area,y=d2H.1H, fill= variable), shape= 21, size=4,alpha=0.8)+
+  scale_fill_manual(labels=c("CholOAc"= "cholesterol-OAc", "StigmaOAc"= "stigmasterol-OAc"),
+                    values=c(CholOAc="maroon", StigmaOAc="blueviolet"))+
+  coord_cartesian(xlim=c(-1,145), ylim= c(-300,-175), clip="off")+   
+  scale_x_continuous(breaks=c(0,40,80,120))+
+  annotate("text",y= -165, x= -40,label="A", size=15, fontface=2, color="black")+
+  ylab(expression(delta^2*H~("\211"))) + xlab("peak area (Vs)")+
+  theme(panel.background = element_blank(),
+        plot.title=element_text(size=35, color= 'black', face= 'bold'),
+        plot.subtitle=element_text(size=15, color= 'white'),
+        legend.position = "none",
+        #legend.position = "right",
+        #legend.key = element_blank(),
+        #legend.title = element_blank(),
+        #legend.text= element_text(size=30, color='black'),
+        axis.line.y =element_line(color='black'),
+        axis.line.x =element_line(color='black'),
+        axis.text.y = element_text(size=30, color= 'black', face= 'bold'),
+        axis.text.x = element_text(size=30, color= "black", face= 'bold'),
+        axis.title.y = element_text(size=35, color= 'black', face= 'bold'),
+        axis.title.x = element_text(size=30, color= 'black', face= 'bold'),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size=1, color= 'white', face= 'bold'),
+        plot.margin = unit(c(1.5,0.25,0.25,0.5), "cm"))
+
+
+pEps_mr_peakArea <- ggplot() + 
+  geom_smooth(data= d2H_cholOAc_stigmaOAc, aes(x=peak_area, y=epsilon_d2Hmeasured.d2Hreal),method="lm", formula= y ~ log(x), color="black", linewidth=0.75, se=FALSE)+ 
+  geom_point(data= d2H_cholOAc_stigmaOAc, aes(x=peak_area,y=epsilon_d2Hmeasured.d2Hreal, fill= variable), shape= 21, size=4,alpha=0.8)+
+  scale_fill_manual(labels=c("CholOAc"= "cholesterol-OAc", "StigmaOAc"= "stigmasterol-OAc"),
+                    values=c(CholOAc="maroon", StigmaOAc="blueviolet"))+
+  
+  coord_cartesian(xlim=c(-1,145), ylim=c(-15,125),clip="off")+
+  scale_x_continuous(breaks=c(0,40,80,120))+
+  annotate("text",y= 135, x= -35,label="B", size=15, fontface=2, color="black")+
+  annotate("text",y= 40, x= 80,label="y = -23.21 x ln(x) + 103", size=10, fontface=1, color="black")+
+  ylab(expression(epsilon^{2}*""['measured/calibrated']~("\211"))) + xlab("peak area (Vs)")+
+  theme(panel.background = element_blank(),
+        plot.title=element_text(size=35, color= 'black', face= 'bold'),
+        plot.subtitle=element_text(size=15, color= 'white'),
+        legend.position = "right",
+        legend.key = element_blank(),
+        legend.title = element_blank(),
+        legend.text= element_text(size=27.5, color='black'),
+        legend.spacing.y = unit(0.5, "cm"),
+        axis.line.y =element_line(color='black'),
+        axis.line.x =element_line(color='black'),
+        axis.text.y = element_text(size=30, color= 'black', face= 'bold'),
+        axis.text.x = element_text(size=30, color= "black", face= 'bold'),
+        axis.title.y = element_text(size=40, color= 'black', face= 'bold'),
+        axis.title.x = element_text(size=30, color= 'black', face= 'bold'),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size=1, color= 'white', face= 'bold'),
+        plot.margin = unit(c(1.5,0.25,0.25,0.5), "cm"))+
+        guides(fill = guide_legend(byrow = TRUE))
+
+FigS1 <- plot_grid(pd2H_peakArea, pEps_mr_peakArea , ncol=2,rel_widths = c(0.75,1), align="h")
+
+```
+
+## Fig. S1
+
+```{r, fig.width = 22.5, fig.height = 7.5, echo=FALSE}
+
+plot(FigS1)
+
+```

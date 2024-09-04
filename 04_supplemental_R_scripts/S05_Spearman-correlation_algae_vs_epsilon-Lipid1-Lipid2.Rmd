@@ -1,0 +1,434 @@
+---
+title: "S05_Spearman-correlation_algae_vs_epsilon-Lipid1-Lipid2"
+author: "Antonia_Klatt"
+date: "2024-08-02"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readr)
+library(ggplot2)
+library(reshape2)
+library(cowplot)
+library(Hmisc)
+library(corrplot)
+library(ggcorrplot)
+library(psych)
+library(pBrackets)
+library(grid)
+
+#import data 
+
+## epsilon lipid1/lipid2 values
+
+epsilon_lipid1.2 <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\epsilon_lipid1_lipid2_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+
+## phytoplankton relative biovolume 
+
+phytoplankton_rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\phytoplankton_rel_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+### adding sum of cyanobacterial and green algal biovolume
+
+phytoplankton_rel.bioVol$sum_cyano_green.algae <- rowSums(phytoplankton_rel.bioVol[,2:3]) 
+
+
+## eukaryotic algae relative biovolume 
+
+eukary.algae_rel.bioVol <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\eukaryotic_algae_rel_biovolume_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+
+#note: data frames include two different depths: surface water (A) and chlorophyll maximum depth (B)
+
+
+#merge data frames
+
+## epsilon C16:0/phytol values and phytoplankton biovolume
+
+phytoplankton_eps_C16.0_phytol <- cbind.data.frame(phytoplankton_rel.bioVol[,2:8], epsilon_lipid1.2[,2:2])
+
+colnames(phytoplankton_eps_C16.0_phytol) <- c("cyanobacteria", "green.algae", "Chrysophyta", "Diatoms", "Dinoflagellates",
+                                              "Cryptophyceae", "sum_cyano_green.algae", "epsilon_C16.0_phytol")
+
+summary(lm(sum_cyano_green.algae~epsilon_C16.0_phytol, data=phytoplankton_eps_C16.0_phytol))
+
+## epsilon C16:0/sterol,epsilon sterol/phytol values and eukaryotic algal biovolume
+
+eukary.algae_eps_C16.0_sterol_phytol <- cbind.data.frame(eukary.algae_rel.bioVol[,2:6], epsilon_lipid1.2[,3:4])
+
+colnames(eukary.algae_eps_C16.0_sterol_phytol) <- c("green.algae", "Chrysophyta", "Diatoms", "Dinoflagellates",
+                                                    "Cryptophyceae", "epsilon_C16.0_sterol", "epsilon_sterol_phytol")
+
+
+#separating surface water (surface) and chlorophyll maximum depth (chlorMax)
+
+phytoplankton_eps_C16.0_phytolA <- phytoplankton_eps_C16.0_phytol[1:25,]
+phytoplankton_eps_C16.0_phytolB <- phytoplankton_eps_C16.0_phytol[26:49,]
+
+eukary.algae_eps_C16.0_sterol_phytolA <- eukary.algae_eps_C16.0_sterol_phytol[1:25,]
+eukary.algae_eps_C16.0_sterol_phytolB <- eukary.algae_eps_C16.0_sterol_phytol[26:49,]
+
+```
+
+## checking Spearman's correlation between epsilon C16:0/phytol values and phytoplankton biovolume
+
+```{r}
+## both depths
+
+#rcor1 <- rcorr(as.matrix(na.omit(phytoplankton_eps_C16.0_phytol)),  type=c("spearman"), )
+
+rcor1 <- corr.test(as.matrix(na.omit(phytoplankton_eps_C16.0_phytol)), method="spearman", adjust="bonferroni")
+
+###correlation matrix indicating significant correlation at significance level alpha 0.05  
+
+corrplot(rcor1$r,  title= "1 m depth + chlorophyll maximum depth", type="upper", p.mat = rcor1$p, diag= FALSE,
+         method="ellipse", sig.level = 0.05, insig= "label_sig", tl.col="black", addCoef.col= "black",number.cex = 1,
+         number.font = 0.8, col=colorRampPalette(c("lightcyan4","seashell1","lightgoldenrod"))(100))
+
+## surface water
+
+rcor2 <- corr.test(as.matrix(na.omit(phytoplankton_eps_C16.0_phytolA)), method="spearman", adjust="bonferroni")
+
+###correlation matrix indicating significant correlation at significance level alpha 0.05  
+
+corrplot(rcor2$r,  title= "1 m depth", type="upper", p.mat = rcor2$p, diag= FALSE, method="ellipse",
+         sig.level = 0.05, insig= "label_sig", tl.col="black", addCoef.col= "black",number.cex = 1, number.font = 0.8,
+          col=colorRampPalette(c("lightcyan4","seashell1","lightgoldenrod"))(100))
+
+## chlorophyll maximum depth
+
+rcor3 <- corr.test(as.matrix(na.omit(phytoplankton_eps_C16.0_phytolB)), method="spearman", adjust="bonferroni")
+
+###correlation matrix indicating significant correlation at significance level alpha 0.05  
+
+corrplot(rcor3$r,  title= "chlorophyll maximum depth", type="upper", p.mat = rcor3$p, diag= FALSE, method="ellipse",
+         sig.level = 0.05, insig= "label_sig", tl.col="black", addCoef.col= "black",number.cex = 1, number.font = 0.8,
+          col=colorRampPalette(c("lightcyan4","seashell1","lightgoldenrod"))(100))
+
+```
+
+## checking Spearman's correlation between epsilon C16:0/sterol,epsilon sterol/phytol values and eukaryotic algal biovolume
+
+```{r}
+
+## both depths
+
+rcor4 <- corr.test(as.matrix(na.omit(eukary.algae_eps_C16.0_sterol_phytol)), method="spearman", adjust="bonferroni")
+
+###correlation matrix indicating significant correlation at significance level alpha 0.05  
+
+corrplot(rcor4$r,  title= "1 m depth + chlorophyll maximum depth", type="upper", p.mat = rcor4$p, diag= FALSE,
+         method="ellipse", sig.level = 0.05, insig= "label_sig", tl.col="black", addCoef.col= "black",number.cex = 1,
+         number.font = 0.8, mar=c(0,0,1,0), col=colorRampPalette(c("lightcyan4","seashell1","lightgoldenrod"))(100))
+
+## surface water
+
+rcor5 <- corr.test(as.matrix(na.omit(eukary.algae_eps_C16.0_sterol_phytolA)), method="spearman", adjust="bonferroni")
+
+###correlation matrix indicating significant correlation at significance level alpha 0.05  
+
+corrplot(rcor5$r,  title= "1 m depth", type="upper", p.mat = rcor5$p, diag= FALSE, method="ellipse",
+         sig.level = 0.05, insig= "label_sig", tl.col="black", addCoef.col= "black",number.cex = 1, number.font = 0.8,
+         mar=c(0,0,1,0), col=colorRampPalette(c("lightcyan4","seashell1","lightgoldenrod"))(100))
+
+
+## chlorophyll maximum depth
+
+rcor6 <- corr.test(as.matrix(na.omit(eukary.algae_eps_C16.0_sterol_phytolB)), method="spearman", adjust="bonferroni")
+
+
+###correlation matrix indicating significant correlation at significance level alpha 0.05  
+
+corrplot(rcor6$r,  title= "chlorophyll maximum depth", type="upper", p.mat = rcor6$p, diag= FALSE, method="ellipse",
+         sig.level = 0.05, insig= "label_sig", tl.col="black", addCoef.col= "black",number.cex = 1, number.font = 0.8,
+         mar=c(0,0,1,0), col=colorRampPalette(c("lightcyan4","seashell1","lightgoldenrod"))(100))
+
+```
+
+## plotting correlation matrix with Spearman's correlation between epsilon C16:0/phytol values and phytoplankton biovolume
+
+```{r}
+
+#Fig. S2
+
+cor1 <- cor(na.omit(phytoplankton_eps_C16.0_phytol), method = "spearman")
+
+#both sampling depths
+
+pcorr1 <- ggcorrplot(cor1, method = "square", type = "lower", hc.order= FALSE, sig.level = 0.05,
+                     outline.col = "gray", lab=TRUE, lab_size=6,
+                     legend.title= c("Spearman's r"), colors=c("turquoise","seashell1","lightgoldenrod"))+
+  scale_y_discrete(position='right', labels=c(cyanobacteria= expression(italic("Cyanophyceae")),
+                                              green.algae= expression(italic("Chlorophyceae")),
+                                              Chrysophyta= expression(italic("Chrysophyceae")), 
+                                              Diatoms= expression(italic("Bacillariophyceae")),
+                                              Dinoflagellates= expression(italic("Dinophyceae")),
+                                              Cryptophyceae= expression(italic("Cryptophyceae")),
+                                              sum_cyano_green.algae= expression(sum(italic("Chloro-, Cyanophyceae")))))+
+  scale_x_discrete(labels=c(green.algae= expression(italic("Chlorophyceae")),
+                            Chrysophyta= expression(italic("Chrysophyceae")), 
+                            Diatoms= expression(italic("Bacillariophyceae")),
+                            Dinoflagellates= expression(italic("Dinophyceae")),
+                            Cryptophyceae= expression(italic("Cryptophyceae")),
+                            sum_cyano_green.algae= expression(sum(italic("Chloro-, Cyanophyceae"))),
+                            epsilon_C16.0_phytol= expression(epsilon^{2}*""['C16:0/phytol']~("\u2030"))))+
+  labs(title= "1 m depth + chlorophyll maximum depth", subtitle= "spacer")+
+  annotate("text",x=-0.35,y=8.425,label="A", size=15,color="black", fontface=2)+
+  annotate("text",x=3.375,y=1.08,label="*", size=10,color="black")+
+  annotate("text",x=6.375,y=1.08,label="*", size=10,color="black")+
+  annotate("text",x=6.375,y=4.08,label="*", size=10,color="black")+
+  annotate("text",x=12.45,y=4.15,label="% algal biovolume", size=7.75,color="black", angle=90)+
+  guides(fill = guide_colorbar(title.position="top", title.hjust = 0.5))+
+  coord_cartesian(xlim=c(1,7),ylim=c(1,7),clip="off")+
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title=element_text(size=30, color="black", face= "bold"),
+        plot.subtitle= element_text(size=15, color="white", face= "bold"),
+        axis.text.x = element_text(size=22.5, color="black"),
+        axis.text.y = element_text(size=22.5, color="black"),
+        legend.text = element_text(size=17.5, color="black"),
+        legend.title = element_text(size=22.5, color="black"),
+        legend.key.width = unit(1.25, "cm"),
+        legend.key.height = unit(1, "cm"),
+        legend.direction = "horizontal",
+        legend.position= c(0.25,0.75),
+        plot.margin = unit(c(0.75,2.5,0.25,3), "cm"))
+
+#surface water
+
+cor2 <- cor(na.omit(phytoplankton_eps_C16.0_phytolA), method = "spearman")
+
+pcorr2 <- ggcorrplot(cor2, method = "square", type = "lower", hc.order= FALSE, sig.level = 0.05,
+                     outline.col = "gray", lab=TRUE, lab_size=6,
+                     legend.title= c("Spearman's r"), colors=c("turquoise","seashell1","lightgoldenrod"))+
+  scale_y_discrete(position='right', labels=c(cyanobacteria= expression(italic("Cyanophyceae")),
+                                              green.algae= expression(italic("Chlorophyceae")),
+                                              Chrysophyta= expression(italic("Chrysophyceae")), 
+                                              Diatoms= expression(italic("Bacillariophyceae")),
+                                              Dinoflagellates= expression(italic("Dinophyceae")),
+                                              Cryptophyceae= expression(italic("Cryptophyceae")),
+                                              sum_cyano_green.algae= expression(sum(italic("Chloro-, Cyanophyceae")))))+
+  scale_x_discrete(labels=c(green.algae= expression(italic("Chlorophyceae")),
+                            Chrysophyta= expression(italic("Chrysophyceae")), 
+                            Diatoms= expression(italic("Bacillariophyceae")),
+                            Dinoflagellates= expression(italic("Dinophyceae")),
+                            Cryptophyceae= expression(italic("Cryptophyceae")),
+                            sum_cyano_green.algae= expression(sum(italic("Chloro-, Cyanophyceae"))),
+                            epsilon_C16.0_phytol= expression(epsilon^{2}*""['C16:0/phytol']~("\u2030"))))+
+  labs(title= "1 m depth", subtitle= "spacer")+
+  annotate("text",x=-0.35,y=8.425,label="B", size=15,color="black", fontface=2)+
+  annotate("text",x=6.375,y=2.08,label="*", size=10,color="black")+
+  annotate("text",x=12.45,y=4.15,label="% algal biovolume", size=7.75,color="black", angle=90)+
+  guides(fill = guide_colorbar(title.position="top", title.hjust = 0.5))+
+  coord_cartesian(xlim=c(1,7),ylim=c(1,7),clip="off")+
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title=element_text(size=30, color="black", face= "bold"),
+        plot.subtitle= element_text(size=15, color="white", face= "bold"),
+        axis.text.x = element_text(size=22.5, color="black"),
+        axis.text.y = element_text(size=22.5, color="black"),
+        legend.text = element_text(size=17.5, color="black"),
+        legend.title = element_text(size=22.5, color="black"),
+        legend.key.width = unit(1.25, "cm"),
+        legend.key.height = unit(1, "cm"),
+        legend.direction = "horizontal",
+        legend.position= c(0.25,0.75),
+        plot.margin = unit(c(0.75,2.5,0.25,3), "cm"))
+
+#chlorophyll maximum depth 
+
+cor3 <- cor(na.omit(phytoplankton_eps_C16.0_phytolB), method = "spearman")
+
+pcorr3 <- ggcorrplot(cor3, method = "square", type = "lower", hc.order= FALSE, sig.level = 0.05,
+                     outline.col = "gray", lab=TRUE, lab_size=6,
+                     legend.title= c("Spearman's r"), colors=c("turquoise","seashell1","lightgoldenrod"))+
+  scale_y_discrete(position='right', labels=c(cyanobacteria= expression(italic("Cyanophyceae")),
+                                              green.algae= expression(italic("Chlorophyceae")),
+                                              Chrysophyta= expression(italic("Chrysophyceae")), 
+                                              Diatoms= expression(italic("Bacillariophyceae")),
+                                              Dinoflagellates= expression(italic("Dinophyceae")),
+                                              Cryptophyceae= expression(italic("Cryptophyceae")),
+                                              sum_cyano_green.algae= expression(sum(italic("Chloro-, Cyanophyceae")))))+
+  scale_x_discrete(labels=c(green.algae= expression(italic("Chlorophyceae")),
+                            Chrysophyta= expression(italic("Chrysophyceae")), 
+                            Diatoms= expression(italic("Bacillariophyceae")),
+                            Dinoflagellates= expression(italic("Dinophyceae")),
+                            Cryptophyceae= expression(italic("Cryptophyceae")),
+                            sum_cyano_green.algae= expression(sum(italic("Chloro-, Cyanophyceae"))),
+                            epsilon_C16.0_phytol= expression(epsilon^{2}*""['C16:0/phytol']~("\u2030"))))+
+  labs(title= "chlorophyll maximum depth", subtitle= "spacer")+
+  annotate("text",x=-0.35,y=8.425,label="C", size=15,color="black", fontface=2)+
+  annotate("text",x=3.375,y=1.08,label="*", size=10,color="black")+
+  annotate("text",x=6.375,y=1.08,label="*", size=10,color="black")+
+  annotate("text",x=6.375,y=4.08,label="*", size=10,color="black")+
+  annotate("text",x=12.45,y=4.15,label="% algal biovolume", size=7.75,color="black", angle=90)+
+  guides(fill = guide_colorbar(title.position="top", title.hjust = 0.5))+
+  coord_cartesian(xlim=c(1,7),ylim=c(1,7),clip="off")+
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title=element_text(size=30, color="black", face= "bold"),
+        plot.subtitle= element_text(size=15, color="white", face= "bold"),
+        axis.text.x = element_text(size=22.5, color="black"),
+        axis.text.y = element_text(size=22.5, color="black"),
+        legend.text = element_text(size=17.5, color="black"),
+        legend.title = element_text(size=22.5, color="black"),
+        legend.key.width = unit(1.25, "cm"),
+        legend.key.height = unit(1, "cm"),
+        legend.direction = "horizontal",
+        legend.position= c(0.25,0.75),
+        plot.margin = unit(c(0.75,2.5,0.25,3), "cm"))
+
+
+FigS5 <- plot_grid(pcorr1, pcorr2, pcorr3, ncol=1, align= "v")
+
+```
+## Fig. S5
+
+```{r , fig.width = 12.5, fig.height = 30, echo=FALSE}
+
+plot(FigS5)
+
+```
+
+## plotting correlation matrix with Spearman's correlation between epsilon C16:0/sterol, epsilon sterol/phytol values and eukaryotic algal biovolume
+
+```{r}
+
+#both sampling depths
+
+cor4 <- cor(na.omit(eukary.algae_eps_C16.0_sterol_phytol), method = "spearman")
+
+pcorr4 <- ggcorrplot(cor4, method = "square", type = "lower", hc.order= FALSE, sig.level = 0.05,
+                     outline.col = "gray", lab=TRUE, lab_size=8, legend.title= c("Spearman's r"),
+                     colors=c("turquoise","seashell1","lightgoldenrod"))+
+  scale_y_discrete(position='right', labels=c(green.algae= expression(italic("Chlorophyceae")),
+                                              Chrysophyta= expression(italic("Chrysophyceae")), 
+                                              Diatoms= expression(italic("Bacillariophyceae")),
+                                              Dinoflagellates= expression(italic("Dinophyceae")),
+                                              Cryptophyceae= expression(italic("Cryptophyceae")),
+                                              epsilon_C16.0_sterol=expression(epsilon^{2}*""['C16:0/sterol']~("\u2030"))))+
+  scale_x_discrete(labels=c(green.algae= expression(italic("Chlorophyceae")),
+                            Chrysophyta= expression(italic("Chrysophyceae")), 
+                            Diatoms= expression(italic("Bacillariophyceae")),
+                            Dinoflagellates= expression(italic("Dinophyceae")),
+                            Cryptophyceae= expression(italic("Cryptophyceae")),
+                            epsilon_C16.0_sterol= expression(epsilon^{2}*""['C16:0/sterol']~("\u2030")),
+                            epsilon_sterol_phytol= expression(epsilon^{2}*""['sterol/phytol']~("\u2030"))))+
+  annotate("text",x=-0.15,y=7.2,label="A", size=15,color="black", fontface=2)+
+  labs(title= "1 m depth + chlorophyll maximum depth", subtitle= "spacer")+
+  annotate("text",x=6.325,y=6.08,label="*", size=10,color="black")+
+  annotate("text",x=9.25,y=3,label="% eukaryotic algal biovolume", size=8.5,color="black", angle=90)+
+  guides(fill = guide_colorbar(title.position="top", title.hjust = 0.5))+
+  coord_cartesian(xlim=c(1,6),ylim=c(1,6),clip="off")+
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title=element_text(size=30, color="black", face= "bold"),
+        plot.subtitle= element_text(size=15, color="white", face= "bold"),
+        axis.text.x = element_text(size=22.5, color="black"),
+        axis.text.y = element_text(size=22.5, color="black"),
+        legend.text = element_text(size=17.5, color="black"),
+        legend.title = element_text(size=22.5, color="black"),
+        legend.key.width = unit(1.25, "cm"),
+        legend.key.height = unit(1, "cm"),
+        legend.direction = "horizontal",
+        legend.position= c(0.25,0.75),
+        plot.margin = unit(c(0.75,3,0.25,3), "cm"))
+
+#surface water
+
+cor5 <- cor(na.omit(eukary.algae_eps_C16.0_sterol_phytolA), method = "spearman")
+
+pcorr5 <- ggcorrplot(cor5, method = "square", type = "lower", hc.order= FALSE, sig.level = 0.05,
+                     outline.col = "gray", lab=TRUE, lab_size=8, legend.title= c("Spearman's r"),
+                     colors=c("turquoise","seashell1","lightgoldenrod"))+
+  scale_y_discrete(position='right', labels=c(green.algae= expression(italic("Chlorophyceae")),
+                                              Chrysophyta= expression(italic("Chrysophyceae")), 
+                                              Diatoms= expression(italic("Bacillariophyceae")),
+                                              Dinoflagellates= expression(italic("Dinophyceae")),
+                                              Cryptophyceae= expression(italic("Cryptophyceae")),
+                                              epsilon_C16.0_sterol=
+                                                expression(epsilon^{2}*""['C16:0/sterol']~("\u2030"))))+
+  scale_x_discrete(labels=c(green.algae= expression(italic("Chlorophyceae")),
+                            Chrysophyta= expression(italic("Chrysophyceae")), 
+                            Diatoms= expression(italic("Bacillariophyceae")),
+                            Dinoflagellates= expression(italic("Dinophyceae")),
+                            Cryptophyceae= expression(italic("Cryptophyceae")),
+                            epsilon_C16.0_sterol= expression(epsilon^{2}*""['C16:0/sterol']~("\u2030")),
+                            epsilon_sterol_phytol= expression(epsilon^{2}*""['sterol/phytol']~("\u2030"))))+
+  annotate("text",x=-0.15,y=7.2,label="B", size=15,color="black", fontface=2)+
+  labs(title= "1 m depth", subtitle= "spacer")+
+  annotate("text",x=-1,y=7.44,label="B", size=15,color="black", fontface=2)+
+  annotate("text",x=6.325,y=6.08,label="*", size=10,color="black")+
+  annotate("text",x=9.25,y=3,label="% eukaryotic algal biovolume", size=8.5,color="black", angle=90)+
+  guides(fill = guide_colorbar(title.position="top", title.hjust = 0.5))+
+  coord_cartesian(xlim=c(1,6),ylim=c(1,6),clip="off")+
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title=element_text(size=30, color="black", face= "bold"),
+        plot.subtitle= element_text(size=15, color="white", face= "bold"),
+        axis.text.x = element_text(size=22.5, color="black"),
+        axis.text.y = element_text(size=22.5, color="black"),
+        legend.text = element_text(size=17.5, color="black"),
+        legend.title = element_text(size=22.5, color="black"),
+        legend.key.width = unit(1.25, "cm"),
+        legend.key.height = unit(1, "cm"),
+        legend.direction = "horizontal",
+        legend.position= c(0.25,0.75),
+        plot.margin = unit(c(0.75,3,0.25,3), "cm"))
+
+#chlorophyll maximum depth
+
+cor6 <- cor(na.omit(eukary.algae_eps_C16.0_sterol_phytolB), method = "spearman")
+
+pcorr6 <- ggcorrplot(cor6, method = "square", type = "lower", hc.order= FALSE, sig.level = 0.05,
+                     outline.col = "gray", lab=TRUE, lab_size=8, legend.title= c("Spearman's r"),
+                     colors=c("turquoise","seashell1","lightgoldenrod"))+
+  scale_y_discrete(position='right', labels=c(green.algae= expression(italic("Chlorophyceae")),
+                                              Chrysophyta= expression(italic("Chrysophyceae")), 
+                                              Diatoms= expression(italic("Bacillariophyceae")),
+                                              Dinoflagellates= expression(italic("Dinophyceae")),
+                                              Cryptophyceae= expression(italic("Cryptophyceae")),
+                                              epsilon_C16.0_sterol=expression(epsilon^{2}*""['C16:0/sterol']~("\u2030"))))+
+  scale_x_discrete(labels=c(green.algae= expression(italic("Chlorophyceae")),
+                            Chrysophyta= expression(italic("Chrysophyceae")), 
+                            Diatoms= expression(italic("Bacillariophyceae")),
+                            Dinoflagellates= expression(italic("Dinophyceae")),
+                            Cryptophyceae= expression(italic("Cryptophyceae")),
+                            epsilon_C16.0_sterol= expression(epsilon^{2}*""['C16:0/sterol']~("\u2030")),
+                            epsilon_sterol_phytol= expression(epsilon^{2}*""['sterol/phytol']~("\u2030"))))+
+  annotate("text",x=-0.15,y=7.2,label="C", size=15,color="black", fontface=2)+
+  labs(title= "chlorophyll maximum depth", subtitle= "spacer")+
+  annotate("text",x=-1,y=7.44,label="B", size=15,color="black", fontface=2)+
+  annotate("text",x=4.325,y=2.08,label="*", size=10,color="black")+
+  annotate("text",x=6.325,y=6.08,label="*", size=10,color="black")+
+  annotate("text",x=9.25,y=3, label="% eukaryotic algal biovolume", size=8.5,color="black", angle=90)+
+  guides(fill = guide_colorbar(title.position="top", title.hjust = 0.5))+
+  coord_cartesian(xlim=c(1,6),ylim=c(1,6),clip="off")+
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title=element_text(size=30, color="black", face= "bold"),
+        plot.subtitle= element_text(size=15, color="white", face= "bold"),
+        axis.text.x = element_text(size=22.5, color="black"),
+        axis.text.y = element_text(size=22.5, color="black"),
+        legend.text = element_text(size=17.5, color="black"),
+        legend.title = element_text(size=22.5, color="black"),
+        legend.key.width = unit(1.25, "cm"),
+        legend.key.height = unit(1, "cm"),
+        legend.direction = "horizontal",
+        legend.position= c(0.25,0.75),
+        plot.margin = unit(c(0.75,3,0.25,3), "cm"))
+
+
+FigS6 <- plot_grid(pcorr4, pcorr5, pcorr6, ncol=1, align= "v")
+ 
+```
+
+## Fig. S6
+
+```{r , fig.width = 12.5, fig.height = 30, echo=FALSE}
+
+plot(FigS6)
+
+```

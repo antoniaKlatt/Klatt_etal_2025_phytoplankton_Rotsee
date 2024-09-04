@@ -1,0 +1,102 @@
+---
+title: "S03_d2H-C16.0_seston_zooplankton"
+author: "Antonia_Klatt"
+date: "2024-08-01"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+#loading packages
+
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(cowplot)
+
+Sys.setlocale("LC_ALL", "English")
+
+#import data (reference data)
+
+## d2H C16:0 values from seston and zooplankton 
+
+# Pilecky et al. (2022): Hydrogen isotopes (δ2H) of polyunsaturated fatty acids track bioconversion by zooplankton. doi: https://doi.org/10.1111/1365-2435.13981
+
+d2H_C16.0_seston_zoo <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\d2H_C16.0_FieldStudy_Pilecky_etal_2022.csv",
+                                  header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+```
+
+## Monte Carlo simulation of d2H C16:0 of seston and zooplankton 
+
+```{r}
+
+#assuming a normal distribution (N) with mean and SD of d2H C16:0 of seston and zooplankton (Pilecky et al., 2022) (n= 50,000)
+
+d2H_C16_seston <- d2H_C16.0_seston_zoo[1:109,]
+
+d2H_C16_zoo <- d2H_C16.0_seston_zoo[110:263,]
+
+## seston
+
+mean_d2H_C16_seston <- mean(d2H_C16_seston$d2H) 
+sd_d2H_C16_seston <- sd(d2H_C16_seston$d2H)
+
+norm_d2H_C16_seston <- rnorm(50000, mean= mean_d2H_C16_seston, sd= sd_d2H_C16_seston)
+
+## zooplankton
+
+mean_d2H_C16_zoo <- mean(d2H_C16_zoo$d2H) 
+sd_d2H_C16_zoo <- sd(d2H_C16_zoo$d2H) 
+
+norm_d2H_C16_zoo <- rnorm(50000, mean= mean_d2H_C16_zoo, sd= sd_d2H_C16_zoo)
+
+
+C16_norm_seston_zoo <- c(norm_d2H_C16_seston,
+                         norm_d2H_C16_zoo)
+
+seston_zoo_grouping <- c(rep("seston", 50000),rep("zoo", 50000))
+
+df_C16_seston_zoo <- data.frame(C16_norm_seston_zoo, seston_zoo_grouping)
+
+```
+
+## plotting density plots d2H C16:0 seston zooplankton
+
+```{r}
+FigS3 <- ggplot(df_C16_seston_zoo) +
+  geom_density(aes(x = C16_norm_seston_zoo, fill= seston_zoo_grouping), alpha=0.45)+
+  scale_fill_manual(labels=c(seston="seston", zoo= "zooplankton"), 
+                    values= c(seston="tomato", zoo= "cyan2"))+
+  scale_y_continuous(limits=c(0,0.015))+
+  ylab("density") + xlab(expression(delta^2*H['C16:0']~("\211"*","~VSMOW)))+ 
+  theme(axis.line = element_line(colour = "black"),
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        axis.text.x = element_text(face='bold', color="black", size=30),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_text(face='bold', color='black', size=30),
+        legend.title = element_blank(),
+        legend.background=element_blank(),
+        legend.key=element_rect(fill="white"),
+        legend.text=element_text(size=30),
+        legend.text.align = 0,
+        legend.spacing.y = unit(0.5, "cm"),
+        plot.title = element_text(color="black", face='bold', size=35),
+        plot.subtitle = element_text(color="white", size=15),
+        strip.placement = "outside",
+        strip.background = element_blank(),
+        axis.title.y = element_text(color='black', size = 30, face="bold"),
+        axis.title.x = element_text(color='black', size = 30, face="bold"))+
+  guides(fill = guide_legend(byrow = TRUE))
+
+```
+
+## Fig. S3
+
+```{r, fig.width = 10, fig.height = 7.5, echo=FALSE}
+
+plot(FigS3)
+
+```

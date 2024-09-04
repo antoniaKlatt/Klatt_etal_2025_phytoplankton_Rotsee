@@ -1,0 +1,347 @@
+---
+title: "S04-d2H-sterols"
+author: "Antonia_Klatt"
+date: "2024-08-01"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+#loading packages
+
+library(readr)
+library(ggplot2)
+library(reshape2)
+library(cowplot)
+Sys.setlocale("LC_ALL", "English")
+
+#import d2H data
+
+d2H_H2O_lipids <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\d2H_H2O_lipids_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+
+#note: data frame includes two different depths: surface water (A) and chlorophyll maximum depth (B)
+
+
+#separating surface water (surface) and chlorophyll maximum depth (chlorMax)
+
+d2H_H2O_lipids_surface <- d2H_H2O_lipids[1:27,]
+
+d2H_H2O_lipids_chlorMax <- d2H_H2O_lipids[28:54,]
+
+
+#Checking correlations between d2H water values and d2H lipid values (R2 values)
+
+
+## both depths
+
+summary(lm(H2O_Avg.d2H_VSMOW~brassicasterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids)) 
+
+summary(lm(H2O_Avg.d2H_VSMOW~ergosterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids))
+
+summary(lm(H2O_Avg.d2H_VSMOW~sitosterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids)) 
+
+summary(lm(H2O_Avg.d2H_VSMOW~stigmasterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids))
+
+
+## surface water
+
+summary(lm(H2O_Avg.d2H_VSMOW~brassicasterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids_surface)) 
+
+summary(lm(H2O_Avg.d2H_VSMOW~ergosterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids_surface))
+
+summary(lm(H2O_Avg.d2H_VSMOW~sitosterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids_surface)) 
+
+summary(lm(H2O_Avg.d2H_VSMOW~stigmasterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids_surface))
+
+
+## chlorophyll maximum depth
+
+summary(lm(H2O_Avg.d2H_VSMOW~brassicasterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids_chlorMax)) 
+
+summary(lm(H2O_Avg.d2H_VSMOW~ergosterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids_chlorMax))
+
+summary(lm(H2O_Avg.d2H_VSMOW~sitosterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids_chlorMax)) 
+
+summary(lm(H2O_Avg.d2H_VSMOW~stigmasterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids_chlorMax))
+
+
+#setting sampling dates
+
+d2H_datesA <- c("2019-01-30", "2019-02-13", "2019-02-27", "2019-03-13" , "2019-03-27", "2019-04-10" ,"2019-04-24","2019-05-08",
+                "2019-05-22", "2019-06-04" ,"2019-06-19", "2019-07-17" , "2019-07-29", "2019-08-14","2019-08-28", "2019-09-11",
+                "2019-09-25", "2019-10-09", "2019-10-23", "2019-11-06", "2019-11-20", "2019-12-04", "2019-12-18","2020-01-07",
+                "2020-01-21", "2020-02-06", "2020-02-18")
+
+rownames(d2H_H2O_lipids_surface) <- d2H_datesA
+
+d2H_H2O_lipids_surface$date <- as.Date(rownames(d2H_H2O_lipids_surface), "%Y-%m-%d")
+
+
+
+d2H_datesB <- c("2019-01-30", "2019-02-13","2019-02-27",  "2019-03-13" , "2019-03-27", "2019-04-10" ,"2019-04-24","2019-05-08",
+                "2019-05-22", "2019-06-04" ,"2019-06-19", "2019-07-17" , "2019-07-29", "2019-08-14","2019-08-28", "2019-09-11",
+                "2019-09-25", "2019-10-09", "2019-10-23", "2019-11-06", "2019-11-20", "2019-12-04", "2019-12-18", "2020-01-07",
+                "2020-01-21", "2020-02-06", "2020-02-18")                              
+
+rownames(d2H_H2O_lipids_chlorMax) <- d2H_datesB
+
+d2H_H2O_lipids_chlorMax$date <- as.Date(rownames(d2H_H2O_lipids_chlorMax), "%Y-%m-%d")
+
+
+#reshape data frames
+
+## choosing d2H values and standard deviations (SD) separately for plotting
+
+d2H_brassicasterol_A <- melt(subset(d2H_H2O_lipids_surface, select= c(date, brassicasterol_Avg.d2H_VSMOW)),id.var="date")
+d2H.SD_brassicasterol_A <- melt(subset(d2H_H2O_lipids_surface, select= c(date, brassicasterol_SD.d2H_VSMOW)),id.var="date")
+
+d2H_ergosterol_A <- melt(subset(d2H_H2O_lipids_surface, select= c(date,ergosterol_Avg.d2H_VSMOW)),id.var="date")
+d2H.SD_ergosterol_A <- melt(subset(d2H_H2O_lipids_surface, select= c(date,ergosterol_SD.d2H_VSMOW)),id.var="date")
+
+d2H_sitosterol_A <- melt(subset(d2H_H2O_lipids_surface, select= c(date,sitosterol_Avg.d2H_VSMOW)),id.var="date")
+d2H.SD_sitosterol_A <- melt(subset(d2H_H2O_lipids_surface, select= c(date,sitosterol_SD.d2H_VSMOW)),id.var="date")
+
+d2H_stigmasterol_A <- melt(subset(d2H_H2O_lipids_surface, select= c(date,stigmasterol_Avg.d2H_VSMOW)),id.var="date")
+d2H.SD_stigmasterol_A <- melt(subset(d2H_H2O_lipids_surface, select= c(date,stigmasterol_SD.d2H_VSMOW)),id.var="date")
+
+
+
+d2H_brassicasterol_B <- melt(subset(d2H_H2O_lipids_chlorMax, select= c(date, brassicasterol_Avg.d2H_VSMOW)),id.var="date")
+d2H.SD_brassicasterol_B <- melt(subset(d2H_H2O_lipids_chlorMax, select= c(date, brassicasterol_SD.d2H_VSMOW)),id.var="date")
+
+d2H_ergosterol_B <- melt(subset(d2H_H2O_lipids_chlorMax, select= c(date,ergosterol_Avg.d2H_VSMOW)),id.var="date")
+d2H.SD_ergosterol_B <- melt(subset(d2H_H2O_lipids_chlorMax, select= c(date,ergosterol_SD.d2H_VSMOW)),id.var="date")
+
+d2H_sitosterol_B <- melt(subset(d2H_H2O_lipids_chlorMax, select= c(date,sitosterol_Avg.d2H_VSMOW)),id.var="date")
+d2H.SD_sitosterol_B <- melt(subset(d2H_H2O_lipids_chlorMax, select= c(date,sitosterol_SD.d2H_VSMOW)),id.var="date")
+
+d2H_stigmasterol_B <- melt(subset(d2H_H2O_lipids_chlorMax, select= c(date,stigmasterol_Avg.d2H_VSMOW)),id.var="date")
+d2H.SD_stigmasterol_B <- melt(subset(d2H_H2O_lipids_chlorMax, select= c(date,stigmasterol_SD.d2H_VSMOW)),id.var="date")
+
+```
+## plotting d2H values of sterols
+
+```{r}
+#Fig. S4
+
+#surface water
+
+pd2H_Brass_surface <- ggplot(data=d2H_brassicasterol_A[!is.na(d2H_brassicasterol_A$value),], aes(x=date,y=value)) + 
+  ggtitle("1 m depth", subtitle= "1 m depth")+
+  geom_point(aes(),fill= "slateblue4", shape= 23, size=4,alpha=0.8)+
+  geom_line(aes(),color= "slateblue4",  linewidth= 1)+ 
+  annotate("text",y= -232.5, x= as.Date("2018-11-23"),label="A", size=15, fontface=2, color="black")+
+  coord_cartesian(ylim=c(-400,-280),x=as.Date(c("2019-01-30", "2020-02-18")), clip="off")+
+  scale_y_continuous(breaks=c(-400,-340,-280))+
+  geom_errorbar(aes(ymin=value-na.omit(d2H.SD_brassicasterol_A$value),
+                    ymax=value+na.omit(d2H.SD_brassicasterol_A$value)), color="black", width=9)+
+  ylab(expression(atop(delta^2*H['brassicasterol'],("\u2030"*","~VSMOW)))) + xlab(NULL)+
+  theme(axis.line = element_line(colour = "black"),
+        plot.title= element_text(size=35, face= "bold"),
+        plot.subtitle= element_text(size=15, color="white"),
+        panel.background = element_blank(),
+        axis.line.x =element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=30,color='slateblue4', face="bold"),
+        axis.title.y = element_text(size=30,color='slateblue4', face="bold"),
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size = 30, color= 'slateblue4', face="bold"),
+        plot.margin = unit(c(1,0,1.25,0.5), "cm"))
+
+
+pd2H_Ergo_surface <- ggplot(data=d2H_ergosterol_A[!is.na(d2H_ergosterol_A$value),], aes(x=date,y=value)) +
+  geom_point(aes(), fill= "cornflowerblue", shape= 23, size=4,alpha=0.8)+
+  geom_line(aes(),color= "cornflowerblue",  linewidth= 1)+ 
+  coord_cartesian(ylim=c(-400,-280),x=as.Date(c("2019-01-30", "2020-02-18")), clip="off")+
+  scale_y_continuous(breaks=c(-400,-340,-280))+
+  geom_errorbar(aes(ymin=value-na.omit(d2H.SD_ergosterol_A$value), ymax=value+na.omit(d2H.SD_ergosterol_A$value)),
+                color="black", width=9)+
+  ylab(expression(atop(delta^2*H['ergosterol'],("\u2030"*","~VSMOW)))) + xlab(NULL)+
+  theme(axis.line = element_line(colour = "black"),
+        panel.background = element_blank(),
+        axis.line.x =element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=30,color='cornflowerblue', face="bold"),
+        axis.title.y = element_text(size=30,color='cornflowerblue', face="bold"),
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size = 30, color= 'cornflowerblue', face="bold"),
+        plot.margin = unit(c(0,0,1,0.5), "cm"))
+
+
+pd2H_Sito_surface <- ggplot(data=d2H_sitosterol_A[!is.na(d2H_sitosterol_A$value),], aes(x=date,y=value)) + 
+  geom_point(aes(), fill= "palevioletred3", shape= 23, size=4,alpha=0.8)+
+  geom_line(aes(),color= "palevioletred3",  linewidth= 1)+ 
+  coord_cartesian(ylim=c(-335,-215),x=as.Date(c("2019-01-30", "2020-02-18")), clip="off")+
+  scale_y_continuous(breaks=c(-335,-275,-215))+
+  geom_errorbar(aes(ymin=value-na.omit(d2H.SD_sitosterol_A$value), ymax=value+na.omit(d2H.SD_sitosterol_A$value)),
+                color="black", width=9)+
+  ylab(expression(atop(delta^2*H['sitosterol'],("\u2030"*","~VSMOW)))) + xlab(NULL)+
+  theme(axis.line = element_line(colour = "black"),
+        panel.background = element_blank(),
+        axis.line.x =element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=30,color='palevioletred3', face="bold"),
+        axis.title.y = element_text(size=30,color='palevioletred3', face="bold"),
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size = 30, color= 'palevioletred3', face="bold"),
+        plot.margin = unit(c(0,0,1,0.5), "cm"))
+
+
+pd2H_Stigma_surface <- ggplot(data=d2H_stigmasterol_A[!is.na(d2H_stigmasterol_A$value),], aes(x=date,y=value)) + 
+  geom_point(aes(), fill= "mediumpurple1", shape= 23, size=4,alpha=0.8)+
+  geom_line(aes(),color= "mediumpurple1",  linewidth= 1)+ 
+  coord_cartesian(ylim=c(-350,-230),x=as.Date(c("2019-01-30", "2020-02-18")), clip="off")+
+  scale_y_continuous(breaks=c(-350,-290,-230))+
+  geom_errorbar(aes(ymin=value-na.omit(d2H.SD_stigmasterol_A$value),
+                    ymax=value+na.omit(d2H.SD_stigmasterol_A$value)), color="black", width=9)+
+  ylab(expression(atop(delta^2*H['stigmasterol'],("\u2030"*","~VSMOW)))) + xlab(NULL)+
+  theme(axis.line = element_line(colour = "black"),
+        panel.background = element_blank(),
+        axis.line.x =element_line(color="black"),
+        axis.text.x = element_text(size=30,color='black', face="bold"),
+        axis.text.y = element_text(size=30,color='mediumpurple1', face="bold"),
+        axis.title.y = element_text(size=30,color='mediumpurple1', face="bold"),
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size = 30, color= 'mediumpurple1', face="bold"),
+        plot.margin = unit(c(0,0,1,0.5), "cm"))
+
+
+pd2H_surface2 <- plot_grid(pd2H_Brass_surface,pd2H_Ergo_surface, pd2H_Sito_surface, pd2H_Stigma_surface,
+                           ncol=1, align="v",rel_heights = c(1.475,1,1,1.1705), axis='lr')
+
+
+#chlorophyll maximum depth
+
+pd2H_Brass_chlorMax <- ggplot(data=d2H_brassicasterol_B[!is.na(d2H_brassicasterol_B$value),], aes(x=date,y=value)) + 
+  ggtitle("chlorophyll maximum depth depth", subtitle= "1 m depth")+
+  geom_point(aes(fill= variable), shape= 23, size=4,alpha=0.8)+
+  geom_line(aes(),color= "slateblue4",  linewidth= 1)+ 
+  scale_fill_manual(labels=c("brassicasterol_Avg.d2H_VSMOW"= expression(delta^2*H['brassicasterol'])),
+                    values=c(brassicasterol_Avg.d2H_VSMOW="slateblue4"))+
+  annotate("text",y= -232.5, x= as.Date("2018-11-10"),label="B", size=15, fontface=2, color="black")+
+  coord_cartesian(ylim=c(-400,-280),x=as.Date(c("2019-01-30", "2020-02-18")), clip="off")+
+  scale_y_continuous(breaks=c(-400,-340,-280))+
+  geom_errorbar(aes(ymin=value-na.omit(d2H.SD_brassicasterol_B$value),
+                    ymax=value+na.omit(d2H.SD_brassicasterol_B$value)), color="black", width=9)+
+  ylab(NULL) + xlab(NULL)+
+  theme(axis.line = element_line(colour = "black"),
+        legend.position = "none",
+        plot.title= element_text(size=35, face= "bold"),
+        plot.subtitle= element_text(size=15, color="white"),
+        panel.background = element_blank(),
+        axis.line.x =element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=30,color='slateblue4', face="bold"),
+        axis.title.y = element_blank(),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size = 30, color= 'slateblue4', face="bold"),
+        plot.margin = unit(c(1,0.5,1.25,0), "cm"))
+
+
+pd2H_Ergo_chlorMax <- ggplot(data=d2H_ergosterol_B[!is.na(d2H_ergosterol_B$value),], aes(x=date,y=value)) + 
+  geom_point(aes(fill= variable), shape= 23, size=4,alpha=0.8)+
+  geom_line(aes(),color= "cornflowerblue",  linewidth= 1)+ 
+  scale_fill_manual(labels=c("ergosterol_Avg.d2H_VSMOW"= expression(delta^2*H['ergosterol'])),
+                    values=c(ergosterol_Avg.d2H_VSMOW="cornflowerblue"))+
+  coord_cartesian(ylim=c(-400,-280),x=as.Date(c("2019-01-30", "2020-02-18")), clip="off")+
+  scale_y_continuous(breaks=c(-400,-340,-280))+
+  geom_errorbar(aes(ymin=value-na.omit(d2H.SD_ergosterol_B$value), ymax=value+na.omit(d2H.SD_ergosterol_B$value)),
+                color="black", width=9)+
+  ylab(NULL) + xlab(NULL)+
+  theme(axis.line = element_line(colour = "black"),
+        legend.position = "none",
+        panel.background = element_blank(),
+        axis.line.x =element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=30,color='cornflowerblue', face="bold"),
+        axis.title.y = element_blank(),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size = 30, color= 'cornflowerblue', face="bold"),
+        plot.margin = unit(c(0,0.5,1,0), "cm"))
+
+
+pd2H_Sito_chlorMax <- ggplot(data=d2H_sitosterol_B[!is.na(d2H_sitosterol_B$value),], aes(x=date,y=value)) + 
+  geom_point(aes(fill= variable), shape= 23, size=4,alpha=0.8)+
+  geom_line(aes(),color= "palevioletred3",  linewidth= 1)+ 
+  scale_fill_manual(labels=c("sitosterol_Avg.d2H_VSMOW"= expression(delta^2*H['sitosterol'])),
+                    values=c(sitosterol_Avg.d2H_VSMOW="palevioletred3"))+
+  coord_cartesian(ylim=c(-335,-215),x=as.Date(c("2019-01-30", "2020-02-18")), clip="off")+
+  scale_y_continuous(breaks=c(-335,-275,-215))+
+  geom_errorbar(aes(ymin=value-na.omit(d2H.SD_sitosterol_B$value), ymax=value+na.omit(d2H.SD_sitosterol_B$value)),
+                color="black", width=9)+
+  ylab(NULL) + xlab(NULL)+
+  theme(axis.line = element_line(colour = "black"),
+        legend.position = "none",
+        panel.background = element_blank(),
+        axis.line.x =element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=30,color='palevioletred3', face="bold"),
+        axis.title.y = element_blank(),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size = 30, color= 'palevioletred3', face="bold"),
+        plot.margin = unit(c(0,0.5,1,0), "cm"))
+
+
+pd2H_Stigma_chlorMax <- ggplot(data=d2H_stigmasterol_B[!is.na(d2H_stigmasterol_B$value),], aes(x=date,y=value)) + 
+  geom_point(aes(fill= variable), shape= 23, size=4,alpha=0.8)+
+  geom_line(aes(),color= "mediumpurple1",  linewidth= 1)+ 
+  scale_fill_manual(labels=c("stigmasterol_Avg.d2H_VSMOW"= expression(delta^2*H['stigmasterol'])),
+                    values=c(stigmasterol_Avg.d2H_VSMOW="mediumpurple1"))+
+  coord_cartesian(ylim=c(-350,-230),x=as.Date(c("2019-01-30", "2020-02-18")), clip="off")+
+  scale_y_continuous(breaks=c(-350,-290,-230))+
+  geom_errorbar(aes(ymin=value-na.omit(d2H.SD_stigmasterol_B$value),
+                    ymax=value+na.omit(d2H.SD_stigmasterol_B$value)), color="black", width=9)+
+  ylab(expression(atop("stigmasterol","[Âµg/L]"))) + xlab(NULL)+
+  theme(axis.line = element_line(colour = "black"),
+        legend.position = "none",
+        panel.background = element_blank(),
+        axis.line.x =element_line(color="black"),
+        axis.text.x = element_text(size=30,color='black', face="bold"),
+        axis.text.y = element_text(size=30,color='mediumpurple1', face="bold"),
+        axis.title.y = element_blank(),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(size = 30, color= 'mediumpurple1', face="bold"),
+        plot.margin = unit(c(0,0.5,1,0), "cm"))
+
+
+pd2H_chlorMax2 <- plot_grid(pd2H_Brass_chlorMax,pd2H_Ergo_chlorMax, pd2H_Sito_chlorMax, pd2H_Stigma_chlorMax,
+                            ncol=1, align="v",rel_heights = c(1.475,1,1,1.1705), axis='lr')
+
+
+FigS4 <- plot_grid(pd2H_surface2, pd2H_chlorMax2, ncol=2,rel_widths = c(1,0.95), align="h")
+
+```
+
+## Fig. S4
+
+```{r, fig.width = 25, fig.height = 12.5, echo=FALSE}
+
+plot(FigS4)
+
+```
+
+
+
+
+
+
