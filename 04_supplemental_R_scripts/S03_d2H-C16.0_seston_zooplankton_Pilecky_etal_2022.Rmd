@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #loading packages
 
 library(readr)
+library(here)
 library(ggplot2)
 library(dplyr)
 library(cowplot)
@@ -19,11 +20,9 @@ Sys.setlocale("LC_ALL", "English")
 
 #import data (reference data)
 
-## d2H C16:0 values from seston and zooplankton 
+## d2H C16:0 values from seston and zooplankton (Pilecky et al., 2022) [https://doi.org/10.1111/1365-2435.13981]
 
-# Pilecky et al. (2022): Hydrogen isotopes (δ2H) of polyunsaturated fatty acids track bioconversion by zooplankton. doi: https://doi.org/10.1111/1365-2435.13981
-
-d2H_C16.0_seston_zoo <- read.csv ("C:\\Users\\KlattA\\OneDrive - Universität Basel\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\d2H_C16.0_FieldStudy_Pilecky_etal_2022.csv",
+d2H_C16.0_seston_zoo <- read.csv(here("02_Reference_data","d2H_C16.0_FieldStudy_Pilecky_etal_2022.csv"),
                                   header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 ```
