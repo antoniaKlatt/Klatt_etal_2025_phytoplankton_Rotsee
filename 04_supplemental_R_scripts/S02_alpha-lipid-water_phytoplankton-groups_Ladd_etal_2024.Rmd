@@ -203,8 +203,8 @@ norm_C16_phyto <-ggplot(df_C16_norm_group) +
   geom_density(aes(x = C16_norm_all, fill= phyto_grouping), alpha=0.175)+
   scale_fill_manual(labels=c(cyano="Cyanophyceae", GA= "Chlorophyceae", chryso= "Chrysophyceae", 
                              dia= "Bacillariophyceae",  dino= "Dinophyceae", crypto= "Cryptophyceae"), 
-                    values= c(cyano="cyan4", GA="forestgreen", chryso="darkgoldenrod1",
-                              dia= "blue" ,dino= "magenta", crypto= "gray56"),
+                   values= c(cyano="#2A788EFF", GA="#7AD151FF", chryso="#E69F00",
+                              dia= "#999999" ,dino= "#D55E00", crypto= "#661100"),
                     name= "phytoplankton group",
                     breaks= c("dia", "GA", "chryso","crypto", "cyano", "dino"))+
   xlab(expression(alpha^{2}*""['C16:0/water']~("\211")))+ylab("density")+
@@ -247,8 +247,8 @@ norm_sterol_phyto <-ggplot(df_sterol_norm_group) +
   geom_density(aes(x = sterol_norm_all, fill= eukary_grouping), alpha=0.175)+
   scale_fill_manual(labels=c(cyano="Cyanophyceae", GA= "Chlorophyceae", chryso= "Chrysophyceae", 
                              dia= "Bacillariophyceae",  dino= "Dinophyceae", crypto= "Cryptophyceae"), 
-                    values= c(cyano="cyan4", GA="forestgreen", chryso="darkgoldenrod1",
-                              dia= "blue" ,dino= "magenta", crypto= "gray56"),
+                    values= c(cyano="#2A788EFF", GA="#7AD151FF", chryso="#E69F00",
+                              dia= "#999999" ,dino= "#D55E00", crypto= "#661100"),
                     name= "phytoplankton group",
                     breaks= c("dia", "GA", "chryso","crypto", "cyano", "dino"))+
   ylab("density") + xlab(expression(alpha^{2}*""['sterol/water']~("\211")))+ 
@@ -295,8 +295,8 @@ norm_phytol_phyto <-ggplot(df_phytol_norm_group) +
                              chryso= expression(italic("Chrysophyceae")), 
                              dia= expression(italic("Bacillariophyceae")),  dino= expression(italic("Dinophyceae")), 
                              crypto= expression(italic("Cryptophyceae"))), 
-                    values= c(cyano="cyan4", GA="forestgreen", chryso="darkgoldenrod1",
-                              dia= "blue" ,dino= "magenta", crypto= "gray56"),
+                    values= c(cyano="#2A788EFF", GA="#7AD151FF", chryso="#E69F00",
+                              dia= "#999999" ,dino= "#D55E00", crypto= "#661100"),
                     name= "phytoplankton",
                     breaks= c("dia", "chryso","crypto", "cyano", "dino", "GA"))+
   ylab("density") + xlab(expression(alpha^{2}*""['phytol/water']~("\211")))+ 
