@@ -87,13 +87,13 @@ Zoo_chlorMax <- melt(zooBio_chlorMax, id.vars="date", measure.vars = c("Ciliata_
 
 pbioVol_surface <-ggplot()+
   ggtitle("1 m depth", subtitle= "1 m depth")+
-  geom_area(data=Zoo_surface, aes(x = date, y=value, fill= variable), alpha=0.275)+
-  geom_line(data=Phyto_surface, aes(x = date, y=value, color= variable),linewidth=1.175)+
+  geom_area(data=Zoo_surface, aes(x = date, y=value, fill= variable), alpha=0.3)+
+  geom_line(data=Phyto_surface, aes(x = date, y=value, color= variable),linewidth=1.5)+
   annotate("text",y= 7.05e+09, x= as.Date("2018-11-10"),label="A", size=15, fontface=2, color="black")+
   coord_cartesian(ylim=c(0,6e+09), x=as.Date(c("2019-01-30", "2020-02-06")),clip="off")+
   scale_fill_manual(labels= c(Gymnodinium_helveticum_um3L= expression(italic("Gymnodinium helveticum")), 
                               Ciliata_um3L="Ciliata", Rotifera_um3L= "Rotifera"),
-                    values=c(Gymnodinium_helveticum_um3L= "orchid", Ciliata_um3L= "lightskyblue3", Rotifera_um3L= "yellow3"),
+                    values=c(Gymnodinium_helveticum_um3L= "#CC79A7", Ciliata_um3L= "#56B4E9", Rotifera_um3L= "#F0E442"),
                     name= "microzooplankton",
                     breaks= c("Ciliata_um3L", "Gymnodinium_helveticum_um3L", "Rotifera_um3L"))+
   scale_color_manual(labels=c(cyanobacteria_um3L=expression(italic("Cyanophyceae")), 
@@ -102,8 +102,8 @@ pbioVol_surface <-ggplot()+
                               Diatoms_um3L= expression(italic("Bacillariophyceae")),  
                               Dinoflagellates_um3L= expression(italic("Dinophyceae")), 
                               Cryptophyceae_um3L= expression(italic("Cryptophyceae"))), 
-                     values= c(cyanobacteria_um3L="cyan4", green.algae_um3L="green3", Chrysophyta_um3L="darkgoldenrod1",
-                               Diatoms_um3L= "gray65" , Dinoflagellates_um3L= "salmon", Cryptophyceae_um3L= "maroon4"),
+                     values= c(cyanobacteria_um3L="#2A788EFF", green.algae_um3L="#7AD151FF", Chrysophyta_um3L="#E69F00",
+                               Diatoms_um3L= "#999999" , Dinoflagellates_um3L= "#D55E00", Cryptophyceae_um3L= "#661100"),
                      name= "phytoplankton",
                      breaks= c("Diatoms_um3L", "Chrysophyta_um3L","Cryptophyceae_um3L", "cyanobacteria_um3L", 
                                "Dinoflagellates_um3L", "green.algae_um3L"))+
@@ -127,7 +127,7 @@ plegend <- get_legend(pbioVol_surface+ theme(legend.title = element_text(size=30
                              legend.key=element_rect(fill="white"),
                              legend.box.background= element_rect(fill= "white", color="black"),
                              legend.text=element_text(size=30))+
-                             guides(colour = guide_legend(title.position="top", override.aes = list(linewidth=3), nrow=2),
+                             guides(colour = guide_legend(title.position="top", override.aes = list(linewidth=5), nrow=2),
                                     linetype = guide_legend(override.aes = list(size = 4)),
                                     fill=guide_legend(title.position="top")))
 
@@ -135,15 +135,15 @@ plegend <- get_legend(pbioVol_surface+ theme(legend.title = element_text(size=30
 
 pbioVol_chlorMax <- ggplot()+
   ggtitle("chlorophyll maximum depth", subtitle= "chlorophyll maximum depth")+
-  geom_area(data=zooBio_chlorMax, aes(x = date, y=Gymnodinium_helveticum_um3L), fill="orchid" , alpha=0.275)+
-  geom_area(data=zooBio_chlorMax, aes(x = date, y=Ciliata_um3L), fill="lightskyblue3" , alpha=0.275)+
-  geom_area(data=zooBio_chlorMax, aes(x = date, y=Rotifera_um3L), fill="yellow3" , alpha=0.275)+  
-  geom_line(data=phytoBio_chlorMax, aes(x = date, y=cyanobacteria_um3L),color="cyan4", linewidth=1.175)+
-  geom_line(data=phytoBio_chlorMax, aes(x = date, y=green.algae_um3L),color="green3", linewidth=1.175)+
-  geom_line(data=phytoBio_chlorMax, aes(x = date, y=Chrysophyta_um3L),color="darkgoldenrod1", linewidth=1.175)+
-  geom_line(data=phytoBio_chlorMax, aes(x = date, y=Diatoms_um3L),color="gray65", linewidth=1.175)+
-  geom_line(data=phytoBio_chlorMax, aes(x = date, y=Dinoflagellates_um3L),color="salmon", linewidth=1.175)+
-  geom_line(data=phytoBio_chlorMax, aes(x = date, y=Cryptophyceae_um3L),color="maroon4", linewidth=1.175)+
+  geom_area(data=zooBio_chlorMax, aes(x = date, y=Gymnodinium_helveticum_um3L), fill="#CC79A7" , alpha=0.3)+
+  geom_area(data=zooBio_chlorMax, aes(x = date, y=Ciliata_um3L), fill="#56B4E9" , alpha=0.3)+
+  geom_area(data=zooBio_chlorMax, aes(x = date, y=Rotifera_um3L), fill="#F0E442" , alpha=0.3)+  
+  geom_line(data=phytoBio_chlorMax, aes(x = date, y=cyanobacteria_um3L),color="#2A788EFF", linewidth=1.5)+
+  geom_line(data=phytoBio_chlorMax, aes(x = date, y=green.algae_um3L),color="#7AD151FF", linewidth=1.5)+
+  geom_line(data=phytoBio_chlorMax, aes(x = date, y=Chrysophyta_um3L),color="#E69F00", linewidth=1.5)+
+  geom_line(data=phytoBio_chlorMax, aes(x = date, y=Diatoms_um3L),color="#999999", linewidth=1.5)+
+  geom_line(data=phytoBio_chlorMax, aes(x = date, y=Dinoflagellates_um3L),color="#D55E00", linewidth=1.5)+
+  geom_line(data=phytoBio_chlorMax, aes(x = date, y=Cryptophyceae_um3L),color="#661100", linewidth=1.5)+
   annotate("text",y= 7.05e+09, x= as.Date("2018-11-12"),label="B", size=15, fontface=2, color="black")+
   coord_cartesian(ylim=c(0,6e+09), x=as.Date(c("2019-01-30", "2020-02-06")),clip="off")+
   ylab(NULL) + xlab(NULL)+ 
