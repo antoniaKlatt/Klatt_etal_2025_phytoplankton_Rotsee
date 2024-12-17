@@ -21,7 +21,9 @@ This folder contains data from other studies. <br>
 Data were taken from <br>
 (1) Pilecky et al., 2022:  [https://doi.org/10.1111/1365-2435.13981] <br>
 and <br>
-(2) Ladd et al., 2024: [https://doi.org/10.5061/dryad.nvx0k6f0v]
+(2) Ladd et al., 2024: [https://doi.org/10.1016/j.gca.2024.12.002] <br>
+and <br>
+(3) Pilecky et al., 2024: [https://doi.org/10.1080/10256016.2024.2419880]
 
 ### 03: R scripts
 This folder contains all R codes for data analysis and data visualization.
