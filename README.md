@@ -1,4 +1,4 @@
-## Algal lipid distributions and hydrogen isotope ratios reflect phytoplankton community dynamics in Rotsee (Switzerland)
+## Algal lipid distributions and hydrogen isotope ratios reflect phytoplankton community dynamics 
 ### Antonia Klatt, Cindy De Jonge, Daniel B. Nelson, Marta Reyes, Carsten J. Schubert, Nathalie Dubois & S. Nemiah Ladd 
 
 [LINK]
