@@ -8,7 +8,7 @@ For this aim, we took water and algal biomass samples from the water column of R
 
 #### This repository contains all R scripts used in our paper with the corresponding data files to run the R codes
 
-**NOTE**: Datasets comprise data from this study and reference data from Pilecky et al., 2022 and Ladd et al., 2024 <br> (see below)
+**NOTE**: Datasets comprise data from this study and reference data from Pilecky et al., 2022, Ladd et al., 2024, and Pilecky et al., 2024 <br> (see below)
 
 ### 01: Data
 This folder contains data from this study. <br>
