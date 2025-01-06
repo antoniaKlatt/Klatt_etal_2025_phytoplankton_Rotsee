@@ -4,7 +4,7 @@
 [LINK]
 
 In this study, we evaluated lipid δ<sup>2</sup>H values as a proxy for lacustrine phytoplankton community composition and sought to improve the reconstruction of algal communities based on holistic analyses of lipid biomarker distributions. 
-For this aim, we took water and algal biomass samples from the water column of Rotsee every second week from January 2019 to February 2020. Lipid distributions and lipid δ<sup>2</sup>H values were related to phytoplankton biovolume to assess how lipid-based indicators captured algal community shifts throughout the year.   
+For this aim, we took water and algal biomass samples from the water column of Rotsee, a small eutrophic lake in central Sqitzerland, every second week from January 2019 to February 2020. Lipid distributions and lipid δ<sup>2</sup>H values were related to phytoplankton biovolume to assess how lipid-based indicators captured algal community shifts throughout the year.   
 
 #### This repository contains all R scripts used in our paper with the corresponding data files to run the R codes
 
