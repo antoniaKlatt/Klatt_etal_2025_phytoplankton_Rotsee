@@ -174,7 +174,7 @@ pcorr1 <- ggcorrplot(cor1, method = "square", type = "lower", hc.order= FALSE, s
                             Dinoflagellates= expression(italic("Dinophyceae")),
                             Cryptophyceae= expression(italic("Cryptophyceae")),
                             sum_cyano_green.algae= expression(sum(italic("Chloro-, Cyanophyceae"))),
-                            epsilon_C16.0_phytol= expression(epsilon^{2}*""['C16:0/phytol']~("\u2030"))))+
+                            epsilon_C16.0_phytol= expression(delta^2*H['C16:0 Acid'/'Phytol']~("\u2030"))))+
   labs(title= "1 m depth + chlorophyll maximum depth", subtitle= "spacer")+
   annotate("text",x=-0.35,y=8.425,label="A", size=15,color="black", fontface=2)+
   annotate("text",x=3.375,y=1.08,label="*", size=10,color="black")+
@@ -217,7 +217,7 @@ pcorr2 <- ggcorrplot(cor2, method = "square", type = "lower", hc.order= FALSE, s
                             Dinoflagellates= expression(italic("Dinophyceae")),
                             Cryptophyceae= expression(italic("Cryptophyceae")),
                             sum_cyano_green.algae= expression(sum(italic("Chloro-, Cyanophyceae"))),
-                            epsilon_C16.0_phytol= expression(epsilon^{2}*""['C16:0/phytol']~("\u2030"))))+
+                            epsilon_C16.0_phytol= expression(delta^2*H['C16:0 Acid'/'Phytol']~("\u2030"))))+
   labs(title= "1 m depth", subtitle= "spacer")+
   annotate("text",x=-0.35,y=8.425,label="B", size=15,color="black", fontface=2)+
   annotate("text",x=6.375,y=2.08,label="*", size=10,color="black")+
@@ -258,7 +258,7 @@ pcorr3 <- ggcorrplot(cor3, method = "square", type = "lower", hc.order= FALSE, s
                             Dinoflagellates= expression(italic("Dinophyceae")),
                             Cryptophyceae= expression(italic("Cryptophyceae")),
                             sum_cyano_green.algae= expression(sum(italic("Chloro-, Cyanophyceae"))),
-                            epsilon_C16.0_phytol= expression(epsilon^{2}*""['C16:0/phytol']~("\u2030"))))+
+                            epsilon_C16.0_phytol= expression(delta^2*H['C16:0 Acid'/'Phytol']~("\u2030"))))+
   labs(title= "chlorophyll maximum depth", subtitle= "spacer")+
   annotate("text",x=-0.35,y=8.425,label="C", size=15,color="black", fontface=2)+
   annotate("text",x=3.375,y=1.08,label="*", size=10,color="black")+
@@ -282,14 +282,14 @@ pcorr3 <- ggcorrplot(cor3, method = "square", type = "lower", hc.order= FALSE, s
         plot.margin = unit(c(0.75,2.5,0.25,3), "cm"))
 
 
-FigS5 <- plot_grid(pcorr1, pcorr2, pcorr3, ncol=1, align= "v")
+FigS7 <- plot_grid(pcorr1, pcorr2, pcorr3, ncol=1, align= "v")
 
 ```
-## Fig. S5
+## Fig. S7
 
 ```{r , fig.width = 12.5, fig.height = 30, echo=FALSE}
 
-plot(FigS5)
+plot(FigS7)
 
 ```
 
@@ -309,18 +309,18 @@ pcorr4 <- ggcorrplot(cor4, method = "square", type = "lower", hc.order= FALSE, s
                                               Diatoms= expression(italic("Bacillariophyceae")),
                                               Dinoflagellates= expression(italic("Dinophyceae")),
                                               Cryptophyceae= expression(italic("Cryptophyceae")),
-                                              epsilon_C16.0_sterol=expression(epsilon^{2}*""['C16:0/sterol']~("\u2030"))))+
+                                              epsilon_C16.0_sterol=expression(delta^2*H['C16:0 Acid'/'Sterol']~("\u2030"))))+
   scale_x_discrete(labels=c(green.algae= expression(italic("Chlorophyceae")),
                             Chrysophyta= expression(italic("Chrysophyceae")), 
                             Diatoms= expression(italic("Bacillariophyceae")),
                             Dinoflagellates= expression(italic("Dinophyceae")),
                             Cryptophyceae= expression(italic("Cryptophyceae")),
-                            epsilon_C16.0_sterol= expression(epsilon^{2}*""['C16:0/sterol']~("\u2030")),
-                            epsilon_sterol_phytol= expression(epsilon^{2}*""['sterol/phytol']~("\u2030"))))+
+                            epsilon_C16.0_sterol= expression(delta^2*H['C16:0 Acid'/'Sterol']~("\u2030")),
+                            epsilon_sterol_phytol= expression(delta^2*H['Sterol'/'Phytol']~("\u2030"))))+
   annotate("text",x=-0.15,y=7.2,label="A", size=15,color="black", fontface=2)+
   labs(title= "1 m depth + chlorophyll maximum depth", subtitle= "spacer")+
   annotate("text",x=6.325,y=6.08,label="*", size=10,color="black")+
-  annotate("text",x=9.25,y=3,label="% eukaryotic algal biovolume", size=8.5,color="black", angle=90)+
+  annotate("text",x=9.5,y=3,label="% eukaryotic algal biovolume", size=8.5,color="black", angle=90)+
   guides(fill = guide_colorbar(title.position="top", title.hjust = 0.5))+
   coord_cartesian(xlim=c(1,6),ylim=c(1,6),clip="off")+
   theme(panel.background = element_blank(),
@@ -350,19 +350,19 @@ pcorr5 <- ggcorrplot(cor5, method = "square", type = "lower", hc.order= FALSE, s
                                               Dinoflagellates= expression(italic("Dinophyceae")),
                                               Cryptophyceae= expression(italic("Cryptophyceae")),
                                               epsilon_C16.0_sterol=
-                                                expression(epsilon^{2}*""['C16:0/sterol']~("\u2030"))))+
+                                                expression(delta^2*H['C16:0 Acid'/'Sterol']~("\u2030"))))+
   scale_x_discrete(labels=c(green.algae= expression(italic("Chlorophyceae")),
                             Chrysophyta= expression(italic("Chrysophyceae")), 
                             Diatoms= expression(italic("Bacillariophyceae")),
                             Dinoflagellates= expression(italic("Dinophyceae")),
                             Cryptophyceae= expression(italic("Cryptophyceae")),
-                            epsilon_C16.0_sterol= expression(epsilon^{2}*""['C16:0/sterol']~("\u2030")),
-                            epsilon_sterol_phytol= expression(epsilon^{2}*""['sterol/phytol']~("\u2030"))))+
+                            epsilon_C16.0_sterol= expression(delta^2*H['C16:0 Acid'/'Sterol']~("\u2030")),
+                            epsilon_sterol_phytol= expression(delta^2*H['Sterol'/'Phytol']~("\u2030"))))+
   annotate("text",x=-0.15,y=7.2,label="B", size=15,color="black", fontface=2)+
   labs(title= "1 m depth", subtitle= "spacer")+
   annotate("text",x=-1,y=7.44,label="B", size=15,color="black", fontface=2)+
   annotate("text",x=6.325,y=6.08,label="*", size=10,color="black")+
-  annotate("text",x=9.25,y=3,label="% eukaryotic algal biovolume", size=8.5,color="black", angle=90)+
+  annotate("text",x=9.5,y=3,label="% eukaryotic algal biovolume", size=8.5,color="black", angle=90)+
   guides(fill = guide_colorbar(title.position="top", title.hjust = 0.5))+
   coord_cartesian(xlim=c(1,6),ylim=c(1,6),clip="off")+
   theme(panel.background = element_blank(),
@@ -391,20 +391,20 @@ pcorr6 <- ggcorrplot(cor6, method = "square", type = "lower", hc.order= FALSE, s
                                               Diatoms= expression(italic("Bacillariophyceae")),
                                               Dinoflagellates= expression(italic("Dinophyceae")),
                                               Cryptophyceae= expression(italic("Cryptophyceae")),
-                                              epsilon_C16.0_sterol=expression(epsilon^{2}*""['C16:0/sterol']~("\u2030"))))+
+                                              epsilon_C16.0_sterol=expression(delta^2*H['C16:0 Acid'/'Sterol']~("\u2030"))))+
   scale_x_discrete(labels=c(green.algae= expression(italic("Chlorophyceae")),
                             Chrysophyta= expression(italic("Chrysophyceae")), 
                             Diatoms= expression(italic("Bacillariophyceae")),
                             Dinoflagellates= expression(italic("Dinophyceae")),
                             Cryptophyceae= expression(italic("Cryptophyceae")),
-                            epsilon_C16.0_sterol= expression(epsilon^{2}*""['C16:0/sterol']~("\u2030")),
-                            epsilon_sterol_phytol= expression(epsilon^{2}*""['sterol/phytol']~("\u2030"))))+
+                            epsilon_C16.0_sterol= expression(delta^2*H['C16:0 Acid'/'Sterol']~("\u2030")),
+                            epsilon_sterol_phytol= expression(delta^2*H['Sterol'/'Phytol']~("\u2030"))))+
   annotate("text",x=-0.15,y=7.2,label="C", size=15,color="black", fontface=2)+
   labs(title= "chlorophyll maximum depth", subtitle= "spacer")+
   annotate("text",x=-1,y=7.44,label="B", size=15,color="black", fontface=2)+
   annotate("text",x=4.325,y=2.08,label="*", size=10,color="black")+
   annotate("text",x=6.325,y=6.08,label="*", size=10,color="black")+
-  annotate("text",x=9.25,y=3, label="% eukaryotic algal biovolume", size=8.5,color="black", angle=90)+
+  annotate("text",x=9.5,y=3, label="% eukaryotic algal biovolume", size=8.5,color="black", angle=90)+
   guides(fill = guide_colorbar(title.position="top", title.hjust = 0.5))+
   coord_cartesian(xlim=c(1,6),ylim=c(1,6),clip="off")+
   theme(panel.background = element_blank(),
@@ -421,15 +421,14 @@ pcorr6 <- ggcorrplot(cor6, method = "square", type = "lower", hc.order= FALSE, s
         legend.position= c(0.25,0.75),
         plot.margin = unit(c(0.75,3,0.25,3), "cm"))
 
-
-FigS6 <- plot_grid(pcorr4, pcorr5, pcorr6, ncol=1, align= "v")
+FigS8 <- plot_grid(pcorr4, pcorr5, pcorr6, ncol=1, align= "v")
  
 ```
 
-## Fig. S6
+## Fig. S8
 
 ```{r , fig.width = 12.5, fig.height = 30, echo=FALSE}
 
-plot(FigS6)
+plot(FigS8)
 
 ```
