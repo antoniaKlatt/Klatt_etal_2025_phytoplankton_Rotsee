@@ -45,13 +45,12 @@ pd2H_peakArea <- ggplot() +
                     values=c(CholOAc="maroon", StigmaOAc="blueviolet"))+
   coord_cartesian(xlim=c(-1,145), ylim= c(-300,-175), clip="off")+   
   scale_x_continuous(breaks=c(0,40,80,120))+
-  annotate("text",y= -165, x= -40,label="A", size=15, fontface=2, color="black")+
+  annotate("text",y= -165, x= -35,label="A", size=15, fontface=2, color="black")+
   ylab(expression(delta^2*H~("\211"))) + xlab("peak area (Vs)")+
   theme(panel.background = element_blank(),
         plot.title=element_text(size=35, color= 'black', face= 'bold'),
         plot.subtitle=element_text(size=15, color= 'white'),
-        legend.position = "none",
-        #legend.position = "right",
+        legend.position="none",
         #legend.key = element_blank(),
         #legend.title = element_blank(),
         #legend.text= element_text(size=30, color='black'),
@@ -64,7 +63,7 @@ pd2H_peakArea <- ggplot() +
         strip.background = element_blank(),
         strip.placement = "outside",
         strip.text = element_text(size=1, color= 'white', face= 'bold'),
-        plot.margin = unit(c(1.5,0.25,0.25,0.5), "cm"))
+        plot.margin = unit(c(1.5,1,0.25,0.5), "cm"))
 
 
 pEps_mr_peakArea <- ggplot() + 
@@ -75,15 +74,18 @@ pEps_mr_peakArea <- ggplot() +
   
   coord_cartesian(xlim=c(-1,145), ylim=c(-15,125),clip="off")+
   scale_x_continuous(breaks=c(0,40,80,120))+
-  annotate("text",y= 135, x= -35,label="B", size=15, fontface=2, color="black")+
+  annotate("text",y= 135, x= -45,label="B", size=15, fontface=2, color="black")+
   annotate("text",y= 40, x= 80,label="y = -23.21 x ln(x) + 103", size=10, fontface=1, color="black")+
-  ylab(expression(epsilon^{2}*""['measured/calibrated']~("\211"))) + xlab("peak area (Vs)")+
+  #ylab(expression(epsilon^{2}*""['measured/calibrated']~("\211"))) 
+  ylab(expression(delta^2*H['measured'/'calibrated']~("\211")))+ xlab("peak area (Vs)")+
   theme(panel.background = element_blank(),
         plot.title=element_text(size=35, color= 'black', face= 'bold'),
         plot.subtitle=element_text(size=15, color= 'white'),
-        legend.position = "right",
+        legend.position=c(0.8, 0.95),
         legend.key = element_blank(),
         legend.title = element_blank(),
+        legend.background = element_blank(),
+        legend.box.background= element_rect(fill= "white", color="black"),
         legend.text= element_text(size=27.5, color='black'),
         legend.spacing.y = unit(0.5, "cm"),
         axis.line.y =element_line(color='black'),
@@ -95,17 +97,17 @@ pEps_mr_peakArea <- ggplot() +
         strip.background = element_blank(),
         strip.placement = "outside",
         strip.text = element_text(size=1, color= 'white', face= 'bold'),
-        plot.margin = unit(c(1.5,0.25,0.25,0.5), "cm"))+
-        guides(fill = guide_legend(byrow = TRUE))
+        plot.margin = unit(c(1.5,1,0.25,0.5), "cm"))+
+  guides(fill = guide_legend(byrow = TRUE))
 
-FigS1 <- plot_grid(pd2H_peakArea, pEps_mr_peakArea , ncol=2,rel_widths = c(0.75,1), align="h")
+FigS3 <- plot_grid(pd2H_peakArea, pEps_mr_peakArea , ncol=2,rel_widths = c(0.75,1), align="h")
 
 ```
 
-## Fig. S1
+## Fig. S3
 
 ```{r, fig.width = 22.5, fig.height = 7.5, echo=FALSE}
 
-plot(FigS1)
+plot(FigS3)
 
 ```
