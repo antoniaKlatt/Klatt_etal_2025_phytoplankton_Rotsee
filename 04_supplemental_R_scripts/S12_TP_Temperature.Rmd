@@ -10,13 +10,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #loading packages
 library(readr)
+library(here)
 library(ggplot2)
 library(reshape2)
 library(cowplot)
 
 Sys.setlocale("LC_ALL", "English")
 
-TN_TP_Temp <- read.csv ("C:\\Users\\KlattA\\Desktop\\Uni Basel\\Basel AG Ladd\\PhD project\\PhD thesis\\Chapter 1 ROT19\\Supplementary_C1\\Tables_C1\\TN_TP_Temp_ROT19.csv", header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+TN_TP_Temp <- read.csv(here("01_Data","TN_TP_Temp_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 #note: data frame includes two different depths: surface water (A) and chlorophyll maximum depth (B)
 
