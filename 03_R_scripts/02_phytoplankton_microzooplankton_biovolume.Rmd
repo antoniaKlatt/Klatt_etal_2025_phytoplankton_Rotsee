@@ -1,5 +1,5 @@
 ---
-title: "02-phytoplankton_microzooplankton_biovolume"
+title: "01-phytoplankton_microzooplankton_biovolume"
 author: "Antonia_Klatt"
 date: "2024-07-31"
 output: html_document
@@ -81,7 +81,19 @@ Zoo_chlorMax <- melt(zooBio_chlorMax, id.vars="date", measure.vars = c("Ciliata_
 
 ```{r}
 
-#Fig. 3
+#Fig. 1
+
+# color-blind friendly palette from [http://www.cookbook-r.com/]
+
+# The palette with grey:
+cbPalette <- c("#999999","#E69F00","#56B4E9","#009E73",
+               "#F0E442","#0072B2","#D55E00","#CC79A7")
+
+#color-blind friendly colors: [https://github.com/Nowosad/rcartocolor] 
+
+safe_colorblind_palette <- c("#88CCEE", "#CC6677", "#DDCC77", "#117733", "#332288", "#AA4499", 
+                             "#44AA99", "#999933", "#882255", "#661100", "#6699CC", "#888888")
+
 
 ##surface water
 
@@ -119,17 +131,21 @@ pbioVol_surface <-ggplot()+
         strip.placement = "outside",
         strip.background = element_blank(),
         axis.title.y = element_text(color='black', size = 30),
-        plot.margin = unit(c(1,0.55,0.25,0.3), "cm"))
+        plot.margin = unit(c(1,0.25,0.25,0.25), "cm"))
 
-plegend <- get_legend(pbioVol_surface+ theme(legend.title = element_text(size=30, face= "bold"),
-                             legend.position= "bottom",
-                             legend.background=element_blank(),
-                             legend.key=element_rect(fill="white"),
-                             legend.box.background= element_rect(fill= "white", color="black"),
-                             legend.text=element_text(size=30))+
-                             guides(colour = guide_legend(title.position="top", override.aes = list(linewidth=5), nrow=2),
-                                    linetype = guide_legend(override.aes = list(size = 4)),
-                                    fill=guide_legend(title.position="top")))
+plegend <- pbioVol_surface+ theme(legend.title = element_text(size=30, face= "bold"),
+                                             legend.position= "bottom",
+                                             legend.background=element_blank(),
+                                             legend.key = element_rect(colour = NA, fill = NA),
+                                             legend.box.background= element_rect(fill= "white", color="black"),
+                                             legend.key.spacing.x = unit(0.55, "cm"),
+                                             legend.text=element_text(size=30))+
+                        guides(colour = guide_legend(title.position="top", override.aes = list(linewidth=5), nrow=2),
+                               linetype = guide_legend(override.aes = list(size = 4)),
+                               fill=guide_legend(title.position="top"))
+
+
+
 
 ##chlorophyll maximum depth
 
@@ -144,9 +160,9 @@ pbioVol_chlorMax <- ggplot()+
   geom_line(data=phytoBio_chlorMax, aes(x = date, y=Diatoms_um3L),color="#999999", linewidth=1.5)+
   geom_line(data=phytoBio_chlorMax, aes(x = date, y=Dinoflagellates_um3L),color="#D55E00", linewidth=1.5)+
   geom_line(data=phytoBio_chlorMax, aes(x = date, y=Cryptophyceae_um3L),color="#661100", linewidth=1.5)+
-  annotate("text",y= 7.05e+09, x= as.Date("2018-11-12"),label="B", size=15, fontface=2, color="black")+
+  annotate("text",y= 7.05e+09, x= as.Date("2018-11-10"),label="B", size=15, fontface=2, color="black")+
   coord_cartesian(ylim=c(0,6e+09), x=as.Date(c("2019-01-30", "2020-02-06")),clip="off")+
-  ylab(NULL) + xlab(NULL)+ 
+  ylab(expression("biovolume"~(mu*m^{3}/L))) + xlab(NULL)+ 
   theme(axis.line = element_line(colour = "black"),
         panel.background = element_blank(),
         axis.text.x = element_text(face='bold', color='black', size=30),
@@ -160,17 +176,17 @@ pbioVol_chlorMax <- ggplot()+
         plot.margin = unit(c(1,0.25,0.25,0.25), "cm"))+
   guides(fill = guide_legend(title.position="top"))
 
-pbioVol <- plot_grid(pbioVol_surface, pbioVol_chlorMax, ncol=2, rel_widths =c(1.05,1), align="h", axis="lr") 
+pbioVol <- plegend + pbioVol_chlorMax & theme(legend.position = "bottom", 
+                                              legend.box.background= element_rect(fill= "white", color="black"),
+                                              legend.box.margin = margin(1.25,1.25,1.25,1.25))
 
-Fig3 <- plot_grid(pbioVol, plegend, ncol=1, rel_heights=c(1,0.25)) 
+Fig1 <- pbioVol + plot_layout(guides = "collect")
 
 ```
 
-## Fig.3
+## Fig.1
 
 ```{r, fig.width = 25, fig.height = 10, echo=FALSE}
-
-Fig3 <- plot_grid(pbioVol, plegend, ncol=1, rel_heights=c(1,0.25)) 
 
 plot(Fig3)
 
