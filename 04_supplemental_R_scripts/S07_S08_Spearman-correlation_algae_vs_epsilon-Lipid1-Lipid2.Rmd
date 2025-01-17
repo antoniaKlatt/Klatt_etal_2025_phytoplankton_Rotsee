@@ -152,7 +152,7 @@ corrplot(rcor6$r,  title= "chlorophyll maximum depth", type="upper", p.mat = rco
 
 ```{r}
 
-#Fig. S2
+#Fig. S7
 
 cor1 <- cor(na.omit(phytoplankton_eps_C16.0_phytol), method = "spearman")
 
@@ -296,6 +296,7 @@ plot(FigS7)
 ## plotting correlation matrix with Spearman's correlation between epsilon C16:0/sterol, epsilon sterol/phytol values and eukaryotic algal biovolume
 
 ```{r}
+#Fig. S8
 
 #both sampling depths
 
