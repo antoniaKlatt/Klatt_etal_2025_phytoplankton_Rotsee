@@ -128,15 +128,15 @@ pNMDS_cyano_FA <-ggplot() + ggtitle("NMDS relative FA concentrations", subtitle=
         axis.title.y = element_text(size = 30, face= "bold"),
         plot.margin = unit(c(1.5,1,1,1), "cm"))
 
-FigS9 <- plot_grid(pNMDS_cyano_alcohols, pNMDS_cyano_FA, ncol=1, align="v", axis="lr")
+FigS11 <- plot_grid(pNMDS_cyano_alcohols, pNMDS_cyano_FA, ncol=1, align="v", axis="lr")
 
 ```
 
-## Fig. S9
+## Fig. S11
 
 ```{r, fig.width = 20, fig.height = 20, echo=FALSE}
 
-plot(FigS9)
+plot(FigS11)
 
 ```
 
