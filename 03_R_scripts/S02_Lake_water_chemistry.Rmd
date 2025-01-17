@@ -1,5 +1,5 @@
 ---
-title: "01-Temperature & Dissolved Oxygen Profile"
+title: "S02-Temperature & Dissolved Oxygen Profile"
 author: "Antonia_Klatt"
 date: "2024-07-31"
 output: html_document
@@ -258,14 +258,14 @@ pWinter <- ggplot()+
         legend.spacing.y = unit(0.25, "cm"),
         plot.margin = unit(c(1.35,0.5,1.35,0.5), "cm"))
 
-Fig2 <- plot_grid(pSpring, pSummer, pAutumn1, pAutumn2, pWinter, ncol=5, align= "h", rel_widths = c(1.2,0.95,1.1,1,1.15))
+FigS2 <- plot_grid(pSpring, pSummer, pAutumn1, pAutumn2, pWinter, ncol=5, align= "h", rel_widths = c(1.2,0.95,1.1,1,1.15))
 
 ```
 
-## Fig. 2
+## Fig. S2
 
 ```{r, fig.width = 20, fig.height = 5, echo=FALSE}
 
-plot(Fig2)
+plot(FigS2)
 
 ```
