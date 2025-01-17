@@ -1,0 +1,114 @@
+---
+title: "02-d2H-water-C16.0-phytol"
+author: "Antonia_Klatt"
+date: "2025-01-06"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+#loading packages
+
+library(readr)
+library(here)
+library(ggplot2)
+library(reshape2)
+library(cowplot)
+Sys.setlocale("LC_ALL", "English")
+
+#import d2H data
+
+d2H_H2O_lipids <- read.csv(here("01_Data","d2H_H2O_lipids_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+
+
+#note: data frame includes two different depths: surface water (A) and chlorophyll maximum depth (B)
+
+
+#separating surface water (surface) and chlorophyll maximum depth (chlorMax)
+
+d2H_H2O_lipids_surface <- d2H_H2O_lipids[1:27,]
+
+d2H_H2O_lipids_chlorMax <- d2H_H2O_lipids[28:54,]
+
+
+#Checking correlations between d2H water values and d2H lipid values (R2 values)
+
+## both depths
+
+summary(lm(H2O_Avg.d2H_VSMOW~C16.0_Avg.d2H_VSMOW, data=d2H_H2O_lipids)) 
+
+summary(lm(H2O_Avg.d2H_VSMOW~phytol_Avg.d2H_VSMOW, data=d2H_H2O_lipids))
+
+summary(lm(H2O_Avg.d2H_VSMOW~stigmasterol_Avg.d2H_VSMOW, data=d2H_H2O_lipids))
+
+## surface water
+
+summary(lm(H2O_Avg.d2H_VSMOW~C16.0_Avg.d2H_VSMOW, data=d2H_H2O_lipids_surface)) 
+
+summary(lm(H2O_Avg.d2H_VSMOW~phytol_Avg.d2H_VSMOW, data=d2H_H2O_lipids_surface))
+
+
+## chlorophyll maximum depth
+
+summary(lm(H2O_Avg.d2H_VSMOW~C16.0_Avg.d2H_VSMOW, data=d2H_H2O_lipids_chlorMax)) 
+
+summary(lm(H2O_Avg.d2H_VSMOW~phytol_Avg.d2H_VSMOW, data=d2H_H2O_lipids_chlorMax))
+
+```
+
+## plotting d2H values of lake water vs d2H values of C16:0 and phytol 
+
+```{r}
+
+#Fig. 2
+
+pd2H_H2O_vs_C16.0 <- ggplot()+
+  geom_smooth(data=d2H_H2O_lipids,aes(x=H2O_Avg.d2H_VSMOW,y=C16.0_Avg.d2H_VSMOW), xseq = c(-86, -74),
+              method="lm", linetype="dashed", color="tomato", fill="tomato1", alpha=0.1, level=0.95)+
+  geom_point(data=d2H_H2O_lipids,aes(x=H2O_Avg.d2H_VSMOW,y=C16.0_Avg.d2H_VSMOW), size=7, shape=1, color="tomato2", stroke=2)+
+  xlab(expression(delta^2*H['water']~("\u2030"*","~VSMOW)))+ 
+  ylab(expression(delta^2*H['C16:0']~("\u2030"*","~VSMOW)))+
+  coord_cartesian(xlim=c(-86,-74), ylim= c(-350,-150), clip="off")+
+  scale_x_continuous(breaks=c(-85,-80,-75))+
+  annotate("text",y= -145, x= -83.75,label=expression(bold(R^2~"= 0.09"~"*")), size=12, fontface=1, color="tomato")+
+  annotate("text",y= -345, x= -84.75,label=expression("n = 50"), size=10.5, color="tomato")+
+  annotate("text",x=-89.5,y=-130,label="A", size=12.5, fontface=2, color="black")+
+  theme(axis.line = element_line(colour = "black"), 
+        panel.background = element_blank(),
+        axis.text.x = element_text(size=30, face= "bold", color="black"),
+        axis.text.y = element_text(size=30, face= "bold", color="black"),
+        axis.title.x = element_text(size = 32.5, face= "bold",color="black"),
+        axis.title.y = element_text(size = 32.5, face= "bold",color="black"),
+        plot.margin = unit(c(1.6,0.5,0.25,0.5), "cm"))
+
+pd2H_H2O_vs_phytol <- ggplot()+
+  geom_smooth(data=d2H_H2O_lipids,aes(x=H2O_Avg.d2H_VSMOW,y=phytol_Avg.d2H_VSMOW), xseq = c(-86, -74),
+              method="lm", linetype="dashed", color=NA, fill="seagreen3", alpha=0.1, level=0.95)+
+  geom_point(data=d2H_H2O_lipids,aes(x=H2O_Avg.d2H_VSMOW,y=phytol_Avg.d2H_VSMOW), size=7, shape=1, color="seagreen3", stroke=2)+
+  xlab(expression(delta^2*H['water']~("\u2030"*","~VSMOW)))+ 
+  ylab(expression(delta^2*H['phytol']~("\u2030"*","~VSMOW)))+
+  scale_x_continuous(breaks=c(-85,-80,-75))+
+  coord_cartesian(xlim=c(-86,-74), ylim= c(-500,-300), clip="off")+
+  annotate("text",y= -295, x= -83.5,label=expression(bold(R^2~"= -0.001")), size=12, fontface=1, color="seagreen4")+
+  annotate("text",y= -495, x= -84.75,label=expression("n = 46"), size=10.5, color="seagreen4")+
+  annotate("text",x=-89.625,y=-280,label="B", size=12.5, fontface=2, color="black")+
+  theme(axis.line = element_line(colour = "black"), 
+        panel.background = element_blank(),
+        axis.text.x = element_text(size=30, face= "bold", color="black"),
+        axis.text.y = element_text(size=30, face= "bold", color="black"),
+        axis.title.x = element_text(size = 32.5, face= "bold",color="black"),
+        axis.title.y = element_text(size = 32.5, face= "bold",color="black"),
+        plot.margin = unit(c(1.6,1,0.25,0.5), "cm"))
+
+Fig2 <- plot_grid(pd2H_H2O_vs_C16.0 , pd2H_H2O_vs_phytol,ncol = 2, align = "h", rel_widths=c(1,1.025))
+
+```
+## Fig. 2
+
+```{r, fig.width = 25, fig.height = 10, echo=FALSE}
+
+plot(Fig2)
+
+```
+
