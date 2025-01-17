@@ -1,5 +1,5 @@
 ---
-title: "S02_alpha-lipid-water_phytoplankton-groups"
+title: "S04_alpha-lipid-water_phytoplankton-groups"
 author: "Antonia_Klatt"
 date: "2024-08-01"
 output: html_document
@@ -20,9 +20,9 @@ Sys.setlocale("LC_ALL", "English")
 
 #import data (reference data)
 
-## alpha lipid/water values algal culturing studies (Ladd et al., 2024) [https://doi.org/10.5061/dryad.nvx0k6f0v] 
+## alpha lipid/water values algal culturing studies (Ladd et al., 2025) [https://doi.org/10.5061/dryad.nvx0k6f0v] and Pilecky et al., 2024 [https://doi.org/10.1080/10256016.2024.2419880]
 
-alpha_lipid_cultures <- read.csv(here("02_Reference_data", "alpha_lipid_water_algae_cultures_Ladd_etal_2024.csv"),
+alpha_lipid_cultures <- read.csv(here("02_Reference_data", "alpha_lipid_water_cultures_Ladd_etal_2024_Pilecky_etal_2024.csv"),
                                   header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 ```
@@ -203,14 +203,14 @@ norm_C16_phyto <-ggplot(df_C16_norm_group) +
   geom_density(aes(x = C16_norm_all, fill= phyto_grouping), alpha=0.175)+
   scale_fill_manual(labels=c(cyano="Cyanophyceae", GA= "Chlorophyceae", chryso= "Chrysophyceae", 
                              dia= "Bacillariophyceae",  dino= "Dinophyceae", crypto= "Cryptophyceae"), 
-                   values= c(cyano="#2A788EFF", GA="#7AD151FF", chryso="#E69F00",
+                    values= c(cyano="#2A788EFF", GA="#7AD151FF", chryso="#E69F00",
                               dia= "#999999" ,dino= "#D55E00", crypto= "#661100"),
                     name= "phytoplankton group",
                     breaks= c("dia", "GA", "chryso","crypto", "cyano", "dino"))+
-  xlab(expression(alpha^{2}*""['C16:0/water']~("\211")))+ylab("density")+
-  coord_cartesian(xlim=c(0.6,1.1), ylim=c(0,27),clip="off")+
+  xlab(expression(alpha^{2}*""['C16:0 Acid/Water']~("\211")))+ylab("density")+
+  coord_cartesian(xlim=c(0.4,1.2), ylim=c(0,27),clip="off")+
   scale_y_continuous(breaks=c(5,10,15,20,25))+
-  annotate("text",y= 27, x= 0.6,label="A", size=15, fontface=2, color="black")+
+  annotate("text",y= 27, x= 0.4,label="A", size=15, fontface=2, color="black")+
   theme(axis.line = element_line(colour = "black"),
         legend.position="none",
         panel.background = element_blank(),
@@ -251,10 +251,10 @@ norm_sterol_phyto <-ggplot(df_sterol_norm_group) +
                               dia= "#999999" ,dino= "#D55E00", crypto= "#661100"),
                     name= "phytoplankton group",
                     breaks= c("dia", "GA", "chryso","crypto", "cyano", "dino"))+
-  ylab("density") + xlab(expression(alpha^{2}*""['sterol/water']~("\211")))+ 
-  coord_cartesian(xlim=c(0.5,1), ylim=c(0,27),clip="off")+
+  ylab("density") + xlab(expression(alpha^{2}*""['Sterol/Water']~("\211")))+ 
+  coord_cartesian(xlim=c(0.4,1.2), ylim=c(0,27),clip="off")+
   scale_y_continuous(breaks=c(5,10,15,20,25))+
-  annotate("text",y= 27, x= 0.5,label="B", size=15, fontface=2, color="black")+
+  annotate("text",y= 27, x= 0.4,label="B", size=15, fontface=2, color="black")+
   theme(axis.line = element_line(colour = "black"),
         legend.position="none",
         panel.background = element_blank(),
@@ -299,8 +299,8 @@ norm_phytol_phyto <-ggplot(df_phytol_norm_group) +
                               dia= "#999999" ,dino= "#D55E00", crypto= "#661100"),
                     name= "phytoplankton",
                     breaks= c("dia", "chryso","crypto", "cyano", "dino", "GA"))+
-  ylab("density") + xlab(expression(alpha^{2}*""['phytol/water']~("\211")))+ 
-  coord_cartesian(xlim=c(0.4,0.9), ylim=c(0,27),clip="off")+
+  ylab("density") + xlab(expression(alpha^{2}*""['Phytol/Water']~("\211")))+ 
+  coord_cartesian(xlim=c(0.4,1.2), ylim=c(0,27),clip="off")+
   scale_y_continuous(breaks=c(5,10,15,20,25))+
   annotate("text",y= 27, x= 0.4,label="C", size=15, fontface=2, color="black")+
   theme(axis.line = element_line(colour = "black"),
@@ -309,9 +309,10 @@ norm_phytol_phyto <-ggplot(df_phytol_norm_group) +
         panel.border = element_blank(),
         axis.text.x = element_text(face='bold', color="black", size=30),
         axis.text.y = element_text(face='bold', color='black', size=30),
-        legend.title = element_text(size=30, face= "bold"),
+        legend.title = element_text(size=30, face= "bold", margin = margin(b=20)),
         legend.background=element_blank(),
         legend.key=element_rect(fill="white"),
+        legend.key.spacing.y= unit(0.55, "cm"),
         legend.text=element_text(size=30),
         legend.text.align = 0,
         legend.spacing.y = unit(0.5, "cm"),
@@ -323,15 +324,14 @@ norm_phytol_phyto <-ggplot(df_phytol_norm_group) +
   guides(fill = guide_legend(byrow = TRUE))
 
 
-FigS2 <- plot_grid(norm_C16_phyto, norm_sterol_phyto, norm_phytol_phyto, ncol=3, align="h", rel_widths = c(1,0.95,1.45))
+FigS4 <- plot_grid(norm_C16_phyto, norm_sterol_phyto, norm_phytol_phyto, ncol=3, align="h", rel_widths = c(1,0.95,1.45))
 
 ```
 
-## Fig. S2
+## Fig. S4
 
 ```{r, fig.width = 30, fig.height = 7.5, echo=FALSE}
 
-plot(FigS2)
+plot(FigS4)
 
 ```
-
