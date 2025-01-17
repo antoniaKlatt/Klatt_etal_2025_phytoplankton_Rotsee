@@ -124,7 +124,7 @@ pRDA1 <- autoplot(rda.env.phyto, arrows = FALSE, geom = c("point", "text"))+
         axis.title.y = element_blank())
 
 
-FigS10 <- pRDA1 + 
+FigS13 <- pRDA1 + 
   geom_hline(yintercept = 0, linetype="dotted", size=0.35)+ 
   geom_vline(xintercept=0, linetype="dotted", size=0.35)+
   geom_point(data= rda_sites, aes(x=RDA1, y=RDA2), shape=1, color= "black", size=2.5)+
@@ -149,10 +149,10 @@ FigS10 <- pRDA1 +
 
 ```
 
-## Fig. S10
+## Fig. S13
 
 ```{r, fig.width = 6, fig.height = 6, echo=FALSE}
 
-plot(FigS10)
+plot(FigS13)
 
 ```
