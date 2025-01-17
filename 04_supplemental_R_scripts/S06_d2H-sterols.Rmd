@@ -125,7 +125,7 @@ d2H.SD_stigmasterol_B <- melt(subset(d2H_H2O_lipids_chlorMax, select= c(date,sti
 ## plotting d2H values of sterols
 
 ```{r}
-#Fig. S4
+#Fig. S6
 
 #surface water
 
@@ -329,15 +329,15 @@ pd2H_chlorMax2 <- plot_grid(pd2H_Brass_chlorMax,pd2H_Ergo_chlorMax, pd2H_Sito_ch
                             ncol=1, align="v",rel_heights = c(1.475,1,1,1.1705), axis='lr')
 
 
-FigS4 <- plot_grid(pd2H_surface2, pd2H_chlorMax2, ncol=2,rel_widths = c(1,0.95), align="h")
+FigS6 <- plot_grid(pd2H_surface2, pd2H_chlorMax2, ncol=2,rel_widths = c(1,0.95), align="h")
 
 ```
 
-## Fig. S4
+## Fig. S6
 
 ```{r, fig.width = 25, fig.height = 12.5, echo=FALSE}
 
-plot(FigS4)
+plot(FigS6)
 
 ```
 
