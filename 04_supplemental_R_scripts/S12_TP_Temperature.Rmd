@@ -17,7 +17,7 @@ library(cowplot)
 
 Sys.setlocale("LC_ALL", "English")
 
-TN_TP_Temp <- read.csv(here("01_Data","TN_TP_Temp_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
+TN_TP_Temp <- read.csv(here("01_Data","TN_TP_Temp_relBio_phytoplankton_ROT19.csv"), header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 #note: data frame includes two different depths: surface water (A) and chlorophyll maximum depth (B)
 
