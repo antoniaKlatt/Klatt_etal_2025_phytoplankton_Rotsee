@@ -1,5 +1,5 @@
 ---
-title: "07-Lipid-ratios_vs_cyanobacterial-biovolume"
+title: "06-Lipid-ratios_vs_cyanobacterial-biovolume"
 author: "Antonia_Klatt"
 date: "2024-08-01"
 output: html_document
@@ -113,7 +113,7 @@ C18_C16_ratioB<- melt(subset(lipid_ratios_cyano_relBio_chlorMax, select= c(date,
 
 pcyano_surface <- ggplot() + ggtitle("1 m depth", subtitle= "1 m depth")+
   geom_line(data= cyano_relBioA, aes(x=date,y=value),color= "cyan4",  linewidth= 1.15)+ 
-  geom_point(data=cyano_relBioA, aes(x=date,y=value), fill= "cyan4", shape= 23, size=3,alpha=0.8)+
+  geom_area(data=cyano_relBioA, aes(x=date,y=value), fill= "cyan4", shape= 23, size=3,alpha=0.5)+
   annotate("text",y= 132, x= as.Date("2018-11-30"),label="A", size=15, fontface=2, color="black")+
   coord_cartesian(ylim=c(0,100),x=as.Date(c("2019-01-30", "2020-02-06")), clip="off")+
   ylab(expression(atop(italic("Cyanophyceae"), "(% algal biovolume)"))) + xlab(NULL)+
@@ -182,7 +182,7 @@ pcyano_lipid_ratio_surface <- plot_grid(pcyano_surface, pPhySt_surface, pC18C16_
 
 pcyano_chlorMax <- ggplot() + ggtitle("chlorophyll maximum depth", subtitle= "chlorophyll maximum depth")+
   geom_line(data=cyano_relBioB, aes(x=date,y=value),color= "cyan4",  linewidth= 1.15)+
-  geom_point(data=cyano_relBioB, aes(x=date,y=value, fill= variable), shape= 23, size=3,alpha=0.8)+
+  geom_area(data=cyano_relBioB, aes(x=date,y=value, fill= variable), shape= 23, size=3,alpha=0.5)+
   scale_fill_manual(labels=c("cyano_relBio"= expression(atop(cyanobacteria,("%"~algal~biovolume)))),
                     values=c(cyano_relBio="cyan4"))+
   annotate("text",y= 132, x= as.Date("2018-11-25"),label="B", size=15, fontface=2, color="black")+
@@ -263,14 +263,14 @@ pC18C16_chlorMax <- ggplot() +
 pcyano_lipid_ratio_chlorMax <- plot_grid(pcyano_chlorMax, pPhySt_chlorMax, pC18C16_chlorMax, ncol=1, align="v",
                                          rel_heights=c(1.45,1.05,1.33), axis='lr')
 
-Fig8 <- plot_grid(pcyano_lipid_ratio_surface, pcyano_lipid_ratio_chlorMax, ncol=2,rel_widths = c(1.05,1), align="h")
+Fig6 <- plot_grid(pcyano_lipid_ratio_surface, pcyano_lipid_ratio_chlorMax, ncol=2,rel_widths = c(1.05,1), align="h")
 
 ```
 
-## Fig. 8
+## Fig. 6
 
 ```{r, fig.width = 25, fig.height = 15, echo=FALSE}
 
-plot (Fig8)
+plot (Fig6)
 
 ```
