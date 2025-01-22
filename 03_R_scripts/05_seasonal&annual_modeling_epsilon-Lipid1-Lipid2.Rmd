@@ -1,5 +1,5 @@
 ---
-title: "06_seasonal&annual_modeling_epsilon-Lipid1-Lipid2"
+title: "05_seasonal&annual_modeling_epsilon-Lipid1-Lipid2"
 author: "Antonia_Klatt"
 date: "2024-08-01"
 output: html_document
@@ -48,9 +48,9 @@ Avg.d2H.water <- read.csv(here("01_Data","avg_d2H_H2O_ROT19.csv"), header = TRUE
 
 #import data (reference data)
 
-## alpha lipid/water values algal culturing studies (Ladd et al., 2024) [https://doi.org/10.5061/dryad.nvx0k6f0v]
+## alpha lipid/water values based on algal culturing studies from Pilecky et al., 2024 [https://doi.org/10.1080/10256016.2024.2419880] and Ladd et al., 2025 [https://doi.org/10.1016/j.gca.2024.12.002] 
 
-alpha_lipid_cultures <- read.csv(here("02_Reference_data","alpha_lipid_water_algae_cultures_Ladd_etal_2024.csv"),
+alpha_lipid_cultures <- read.csv(here("02_Reference_data","alpha_lipid_water_cultures_Ladd_etal_2024_Pilecky_etal_2024.csv"),
                                   header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
 
 
@@ -77,12 +77,11 @@ eukary.algae.micro_Avg.rel.bioVol.dec <- eukary.algae.microplankton_Avg.rel.bioV
 Avg.R.water <- as.data.frame((Avg.d2H.water[,2:2]/1000)+1)
 
 ```
-
 ## Monte Carlo simulation of alpha lipid/water values for each lipid and phytoplankton group
 
 ```{r}
 
-#assuming a normal distribution (N) with mean and SD of alpha lipid/water values from algal cultures (Ladd et al., 2024) (n= 50,000)
+#assuming a normal distribution (N) with mean and SD of alpha lipid/water values from algal cultures (Pilecky et al., 2024; Ladd et al., 2025) (n= 50,000)
 
 ## no set.seed function was set for rnorm() to avoid any influence of the set.seed number on the results- 
 ##instead, n in rnorm() was set to 50,000 to have a high enough sampling number to gain consistent mean values according to the central limit theorem
@@ -251,12 +250,14 @@ norm_crypto_alpha_sterol_water.df <- as.data.frame(norm_crypto_alpha_sterol_wate
 
 ## modeling of seasonal and annual biovolume-weighted 2H/1H (R) lipid values considering algal biovolume only
 
+```{r}
+
 ### calculating 2H/1H (R) lipid values for each algal group by R lipid = alpha lipid/water * R water, based on R water values in Rotsee, then multiply with relative biovolume
 
 #### first: R lipid algal group= alpha lipid/water x R water
 #### second: R lipid phyto=  R lipid algal group x bioVol 
 
-```{r}
+
 
 # modeling R C16:0 values
 
@@ -492,6 +493,7 @@ R_sterol_eukary_winter2020 <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_wa
 ## calculation of epsilon lipid1/lipid2 values including only algal 2H/1H (R) lipid values (epsilon lipid1/lipid2 phyto)
 
 ```{r}
+
 # epsilon C16:0/phytol 
 
 ## year 2019-2020
@@ -704,6 +706,7 @@ Avg.eps_lipid1.2_modeled_phyto <- cbind.data.frame(mean_eps_C16_phytol_modeled_p
 colnames(Avg.eps_lipid1.2_modeled_phyto) <- c("mean_eps_C16_phytol_phyto", "sd_eps_C16_phytol_phyto",
                                               "mean_eps_C16_sterol_phyto", "sd_eps_C16_sterol_phyto",
                                               "mean_eps_sterol_phytol_phyto", "sd_eps_sterol_phytol_phyto")
+
 ```
 
 ## modeling of theoretical microzooplankton 2H/1H (R) C16:0 and sterol values
@@ -803,13 +806,15 @@ R_sterol_micro_winter2020 <- as.data.frame(R_sterol_eukary_winter2020*fractionat
 
 ##  modeling of seasonal and annual biovolume-weighted 2H/1H (R) lipid values considering algal and microzooplankton biovolume 
 
+```{r}
+
 ### calculating 2H/1H (R) lipid values for each group by R lipid = alpha lipid/water * R water, based on R water values in Rotsee, then multiply with relative biovolume
 
 #### first: R lipid group= alpha lipid/water x R water
 #### second: R lipid phyto&zoo=  R lipid group x bioVol 
 
 
-```{r}
+
 # modeling R C16:0 values
 
 ### year 2019-2020
@@ -1005,6 +1010,7 @@ R_sterol_mix_winter2020 <- as.data.frame(((norm_GA_alpha_sterol_water.df*R_water
 ## calculation of epsilon lipid1/lipid2 values including algal and microzooplankton R lipid values (epsilon lipid1/lipid2 phyto&zoo)
 
 ```{r}
+
 #epsilon C16:0/phytol 
 
 ## year 2019-2020
@@ -1211,11 +1217,12 @@ Avg.eps_lipid1.2_modeled_mix <- cbind.data.frame(mean_eps_C16_phytol_modeled_mix
 colnames(Avg.eps_lipid1.2_modeled_mix) <- c("mean_eps_C16_phytol_mix", "sd_eps_C16_phytol_mix",
                                             "mean_eps_C16_sterol_mix", "sd_eps_C16_sterol_mix",
                                             "mean_eps_sterol_phytol_mix", "sd_eps_sterol_phytol_mix")
-
 ```
+
 ## plotting measured and modeled epsilon lipid1/lipid2 values
 
 ```{r}
+
 #separating measured yearly and seasonal weighted average epsilon lipid1/lipid2 values 
 
 epsilon_lipid1.2_year <- Avg.epsilon_lipid1.2[6:6,]
@@ -1434,12 +1441,12 @@ pAvg.Eps_C16.0_phytol <- ggplot() +
   scale_shape_manual(labels=c(epsilon_C16.0_phytol= "measured"),
                      #expression(epsilon^{2}*""['C16:0/phytol']~"measured")),
                      values=c(epsilon_C16.0_phytol=23))+
-  ylab(expression(epsilon^{2}*""['C16:0/phytol']~("\u2030")))+ 
-  annotate("rect", xmin = 0.5 ,xmax = 1.5 , ymin = -Inf, ymax = 375, alpha=0.2, fill="lightblue2")+
-  annotate("rect", xmin = 1.5 ,xmax = 2.5 , ymin = -Inf, ymax = 375, alpha=0.2, fill="palegreen2")+
-  annotate("rect", xmin = 2.5 ,xmax = 3.5 , ymin = -Inf, ymax = 375, alpha=0.12, fill="gold")+
-  annotate("rect", xmin = 3.5 ,xmax = 4.5, ymin = -Inf, ymax = 375, alpha=0.15, fill="orange")+
-  annotate("rect", xmin = 4.5 ,xmax = 5.5 , ymin = -Inf, ymax = 375, alpha=0.2, fill="lightblue2")+
+  ylab(expression(delta^2*H['C16:0 Acid'/'Phytol']~("\u2030")))+  
+  #annotate("rect", xmin = 0.5 ,xmax = 1.5 , ymin = -Inf, ymax = 375, alpha=0.2, fill="lightblue2")+
+  #annotate("rect", xmin = 1.5 ,xmax = 2.5 , ymin = -Inf, ymax = 375, alpha=0.2, fill="palegreen2")+
+  #annotate("rect", xmin = 2.5 ,xmax = 3.5 , ymin = -Inf, ymax = 375, alpha=0.12, fill="gold")+
+  #annotate("rect", xmin = 3.5 ,xmax = 4.5, ymin = -Inf, ymax = 375, alpha=0.15, fill="orange")+
+  #annotate("rect", xmin = 4.5 ,xmax = 5.5 , ymin = -Inf, ymax = 375, alpha=0.2, fill="lightblue2")+
   geom_point(data=epsilon_C16.0_phytol_seasons, aes(x = index, y = value), fill="blue3",size=9, shape=23)+  
   geom_boxplot(data=epsilon_C16_phytol_phyto_winter2019, aes(x=index, y=eps_C16_phytol_phyto_winter2019), 
                middle= mean(epsilon_C16_phytol_phyto_winter2019$eps_C16_phytol_phyto_winter2019), coef=0,
@@ -1511,15 +1518,15 @@ pAvg.Eps_C16.0_phytol <- ggplot() +
                 aes(x=5.275, y=mean_eps_C16_phytol_mix ,xmin=5.275, xmax=5.275, 
                     ymin=(mean_eps_C16_phytol_mix-sd_eps_C16_phytol_mix),
                     ymax=(mean_eps_C16_phytol_mix+sd_eps_C16_phytol_mix)), color="turquoise3", width=0.25)+
-  annotate("text",x=-1.9,y=387,label="A", size=15, fontface=2, color="black")+
-  annotate("text",x=-0.5,y=387,label="2019-2020", size=10.75,color="black")+
-  annotate("text",x=1,y=387,label="2019", size=10.75,color="black")+
-  annotate("text",x=2,y=387,label="2019", size=10.75,color="black")+
-  annotate("text",x=3,y=387,label="2019", size=10.75,color="black")+
-  annotate("text",x=4,y=387, label="2019", size=10.75,color="black")+
-  annotate("text",x=5,y=387,label="2020", size=10.75,color="black")+
-  coord_cartesian(xlim=c(-1,5.25), ylim=c(175,375), clip="off")+
-  scale_y_continuous(breaks=c(200,250,300,350))+
+  annotate("text",x=-1.85,y=440,label="A", size=15, fontface=2, color="black")+
+  annotate("text",x=-0.5,y=435,label="2019-2020", size=10.75,color="black")+
+  annotate("text",x=1,y=435,label="2019", size=10.75,color="black")+
+  annotate("text",x=2,y=435,label="2019", size=10.75,color="black")+
+  annotate("text",x=3,y=435,label="2019", size=10.75,color="black")+
+  annotate("text",x=4,y=435, label="2019", size=10.75,color="black")+
+  annotate("text",x=5,y=435,label="2020", size=10.75,color="black")+
+  coord_cartesian(xlim=c(-1,5.25), ylim=c(175,415), clip="off")+
+  scale_y_continuous(breaks=c(200,250,300,350,400))+
   guides(shape = guide_legend(order=1))+
   theme(axis.line.y = element_line(colour = "black"),
         axis.line.x = element_blank(),
@@ -1533,12 +1540,12 @@ pAvg.Eps_C16.0_phytol <- ggplot() +
         axis.text.x = element_blank(),
         axis.ticks.x= element_blank(),
         axis.title.x = element_blank(),
-        axis.title.y = element_text(size=45, color="navy"),
+        axis.title.y = element_text(size=35, color="navy"),
         legend.position = "right",
         strip.background = element_blank(),
         strip.placement = "outside",
         strip.text = element_blank(),
-        plot.margin = unit(c(1.15,0.25,0,0.75), "cm"))+
+        plot.margin = unit(c(1.75,0.25,1,0.75), "cm"))+
   guides(fill = guide_legend(byrow = TRUE))
 
 
@@ -1571,12 +1578,12 @@ pAvg.Eps_C16.0_sterol <- ggplot() +
   scale_shape_manual(labels=c(epsilon_C16.0_sterol="measured"),
                      #expression(epsilon^{2}*""['C16:0/sterol']~"measured")),
                      values=c(epsilon_C16.0_sterol=23))+
-  ylab(expression(epsilon^{2}*""['C16:0/sterol']~("\u2030")))+ 
-  annotate("rect", xmin = 0.5 ,xmax = 1.5 , ymin = -Inf, ymax = +Inf, alpha=0.2, fill="lightblue2")+
-  annotate("rect", xmin = 1.5 ,xmax = 2.5 , ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="palegreen2")+
-  annotate("rect", xmin = 2.5 ,xmax = 3.5 , ymin = -Inf, ymax =  +Inf, alpha=0.12, fill="gold")+
-  annotate("rect", xmin = 3.5 ,xmax = 4.5, ymin = -Inf, ymax =  +Inf, alpha=0.15, fill="orange")+
-  annotate("rect", xmin = 4.5 ,xmax = 5.5 , ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="lightblue2")+
+  ylab(expression(delta^2*H['C16:0 Acid'/'Sterol']~("\u2030")))+
+  #annotate("rect", xmin = 0.5 ,xmax = 1.5 , ymin = -Inf, ymax = +Inf, alpha=0.2, fill="lightblue2")+
+  #annotate("rect", xmin = 1.5 ,xmax = 2.5 , ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="palegreen2")+
+  #annotate("rect", xmin = 2.5 ,xmax = 3.5 , ymin = -Inf, ymax =  +Inf, alpha=0.12, fill="gold")+
+  #annotate("rect", xmin = 3.5 ,xmax = 4.5, ymin = -Inf, ymax =  +Inf, alpha=0.15, fill="orange")+
+  #annotate("rect", xmin = 4.5 ,xmax = 5.5 , ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="lightblue2")+
   geom_point(data=epsilon_C16.0_sterol_seasons, aes(x = index, y = value), fill="violetred",size=9, shape=23)+  
   geom_boxplot(data=epsilon_C16_sterol_phyto_winter2019, aes(x=index, y=eps_C16_sterol_phyto_winter2019), 
                middle= mean(epsilon_C16_sterol_phyto_winter2019$eps_C16_sterol_phyto_winter2019), coef=0,
@@ -1648,9 +1655,9 @@ pAvg.Eps_C16.0_sterol <- ggplot() +
                 aes(x=5.275, y=mean_eps_C16_sterol_mix ,xmin=5.275, xmax=5.275, 
                     ymin=(mean_eps_C16_sterol_mix-sd_eps_C16_sterol_mix),
                     ymax=(mean_eps_C16_sterol_mix+sd_eps_C16_sterol_mix)), color="plum3", width=0.25)+
-  annotate("text",x=-1.9,y=185,label="B", size=15, fontface=2, color="black")+
-  coord_cartesian(xlim=c(-1,5.25), ylim=c(-25,175),clip="off")+
-  scale_y_continuous(breaks=c(0,50,100,150))+
+  annotate("text",x=-1.85,y=195,label="B", size=15, fontface=2, color="black")+
+  coord_cartesian(xlim=c(-1,5.25), ylim=c(-60,175),clip="off")+
+  scale_y_continuous(breaks=c(-50,0,50,100,150))+
   guides(shape = guide_legend(order=1))+
   theme(axis.line.y = element_line(colour = "black"),
         axis.line.x = element_blank(),
@@ -1664,12 +1671,12 @@ pAvg.Eps_C16.0_sterol <- ggplot() +
         axis.text.x = element_blank(),
         axis.ticks.x= element_blank(),
         axis.title.x = element_blank(),
-        axis.title.y = element_text(size=45, color="violetred"),
+        axis.title.y = element_text(size=35, color="violetred"),
         legend.position = "right",
         strip.background = element_blank(),
         strip.placement = "outside",
         strip.text = element_blank(),
-        plot.margin = unit(c(0.15,0.25,0,0.75), "cm"))+
+        plot.margin = unit(c(1.5,0.25,1.5,0.75), "cm"))+
   guides(fill = guide_legend(byrow = TRUE))
 
 
@@ -1704,12 +1711,12 @@ pAvg.Eps_sterol_phytol <- ggplot() +
   scale_shape_manual(labels=c(epsilon_sterol_phytol= "measured"),
                      #expression(epsilon^{2}*""['sterol/phytol']~"measured")),
                      values=c(epsilon_sterol_phytol=23))+
-  ylab(expression(epsilon^{2}*""['sterol/phytol']~("\u2030")))+ 
-  annotate("rect", xmin = 0.5 ,xmax = 1.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="lightblue2")+
-  annotate("rect", xmin = 1.5 ,xmax = 2.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="palegreen2")+
-  annotate("rect", xmin = 2.5 ,xmax = 3.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.12, fill="gold")+
-  annotate("rect", xmin = 3.5 ,xmax = 4.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.15, fill="orange")+
-  annotate("rect", xmin = 4.5 ,xmax = 5.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="lightblue2")+
+  ylab(expression(delta^2*H['Sterol'/'Phytol']~("\u2030")))+
+  #annotate("rect", xmin = 0.5 ,xmax = 1.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="lightblue2")+
+  #annotate("rect", xmin = 1.5 ,xmax = 2.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="palegreen2")+
+  #annotate("rect", xmin = 2.5 ,xmax = 3.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.12, fill="gold")+
+  #annotate("rect", xmin = 3.5 ,xmax = 4.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.15, fill="orange")+
+  #annotate("rect", xmin = 4.5 ,xmax = 5.5 ,ymin = -Inf, ymax =  +Inf, alpha=0.2, fill="lightblue2")+
   geom_point(data=epsilon_sterol_phytol_seasons, aes(x = index, y = value), fill="springgreen4",size=9,
              shape=23)+  
   geom_boxplot(data=epsilon_sterol_phytol_phyto_winter2019, aes(x=index, y=eps_sterol_phytol_phyto_winter2019), 
@@ -1787,15 +1794,15 @@ pAvg.Eps_sterol_phytol <- ggplot() +
                 aes(x=5.275, y=mean_eps_sterol_phytol_mix ,xmin=5.275, xmax=5.275, 
                     ymin=(mean_eps_sterol_phytol_mix-sd_eps_sterol_phytol_mix),
                     ymax=(mean_eps_sterol_phytol_mix+sd_eps_sterol_phytol_mix)), color="yellow3", width=0.25)+
-  annotate("text",x=-0.5,y=77.5,label="year", size=12,color="black", fontface="bold")+
-  annotate("text",x=1,y=77.5,label="winter", size=12,color="black", fontface="bold")+
-  annotate("text",x=2,y=77.5,label="spring", size=12,color="black", fontface="bold")+
-  annotate("text",x=3,y=77.5,label="summer", size=12,color="black", fontface="bold")+
-  annotate("text",x=4,y=77.5,label="autumn", size=12,color="black", fontface="bold")+
-  annotate("text",x=5,y=77.5,label="winter", size=12,color="black", fontface="bold")+
-  annotate("text",x=-1.9,y=310, label="C", size=15, fontface=2, color="black")+
-  coord_cartesian(xlim=c(-1,5.25),ylim=c(100,300),clip="off")+
-  scale_y_continuous(breaks=c(125,175,225,275))+
+  annotate("text",x=-0.5,y=52.5,label="year", size=12,color="black", fontface="bold")+
+  annotate("text",x=1,y=52.5,label="winter", size=12,color="black", fontface="bold")+
+  annotate("text",x=2,y=52.5,label="spring", size=12,color="black", fontface="bold")+
+  annotate("text",x=3,y=52.5,label="summer", size=12,color="black", fontface="bold")+
+  annotate("text",x=4,y=52.5,label="autumn", size=12,color="black", fontface="bold")+
+  annotate("text",x=5,y=52.5,label="winter", size=12,color="black", fontface="bold")+
+  annotate("text",x=-1.85,y=335, label="C", size=15, fontface=2, color="black")+
+  coord_cartesian(xlim=c(-1,5.25),ylim=c(75,315),clip="off")+
+  scale_y_continuous(breaks=c(100,150,200,250,300))+
   guides(shape = guide_legend(order=1))+
   theme(axis.line.y = element_line(colour = "black"), 
         axis.line.x = element_line(colour = "black"),
@@ -1809,32 +1816,64 @@ pAvg.Eps_sterol_phytol <- ggplot() +
         axis.text.x = element_blank(),
         axis.text.y = element_text(size=33.5, color="springgreen4", face="bold"),
         axis.title.x = element_blank(),
-        axis.title.y = element_text(size=45, color="springgreen4"),
+        axis.title.y = element_text(size=35, color="springgreen4"),
         legend.position = "right",
         strip.background = element_blank(),
         strip.placement = "outside",
         strip.text = element_blank(),
-        plot.margin = unit(c(0.15,0.25,2.35,0.75), "cm"))+
+        plot.margin = unit(c(1,0.25,2.35,0.75), "cm"))+
   guides(fill = guide_legend(byrow = TRUE))
 
-Fig7 <- plot_grid(pAvg.Eps_C16.0_phytol, pAvg.Eps_C16.0_sterol, pAvg.Eps_sterol_phytol,
-          ncol=1, align="v", rel_heights = c(1.155,1.055,1.2)) 
+Fig5 <- plot_grid(pAvg.Eps_C16.0_phytol, pAvg.Eps_C16.0_sterol, pAvg.Eps_sterol_phytol,
+                  ncol=1, align="v", rel_heights = c(1.2,1.3,1.25)) #23.5x25
+
 
 ```
 
-## Fig.7
+## Fig.5 
 
 ```{r, fig.width = 23.5, fig.height = 20, echo=FALSE}
 
-plot(Fig7)
+plot(Fig5)
+
+grid.rect(x = unit(0.33, "npc"), y = unit(0.499, "npc"),
+          width = unit(0.105, "npc"), height = unit(0.9, "npc"),
+          just = "centre", hjust = NULL, vjust = NULL,
+          default.units = "npc", name = NULL,
+          gp=gpar(fill = "lightblue2", col = "transparent", alpha = .125), draw = TRUE, vp = NULL)
+
+grid.rect(x = unit(0.435, "npc"), y = unit(0.499, "npc"),
+          width = unit(0.105, "npc"), height = unit(0.9, "npc"),
+          just = "centre", hjust = NULL, vjust = NULL,
+          default.units = "npc", name = NULL,
+          gp=gpar(fill = "palegreen2", col = "transparent", alpha = .125), draw = TRUE, vp = NULL)
+
+grid.rect(x = unit(0.54, "npc"), y = unit(0.499, "npc"),
+          width = unit(0.105, "npc"), height = unit(0.9, "npc"),
+          just = "centre", hjust = NULL, vjust = NULL,
+          default.units = "npc", name = NULL,
+          gp=gpar(fill = "gold", col = "transparent", alpha = .125), draw = TRUE, vp = NULL)
+
+grid.rect(x = unit(0.645, "npc"), y = unit(0.499, "npc"),
+          width = unit(0.105, "npc"), height = unit(0.9, "npc"),
+          just = "centre", hjust = NULL, vjust = NULL,
+          default.units = "npc", name = NULL,
+          gp=gpar(fill = "orange", col = "transparent", alpha = .125), draw = TRUE, vp = NULL)
+
+grid.rect(x = unit(0.75125, "npc"), y = unit(0.499, "npc"),
+          width = unit(0.1075, "npc"), height = unit(0.9, "npc"),
+          just = "centre", hjust = NULL, vjust = NULL,
+          default.units = "npc", name = NULL,
+          gp=gpar(fill = "lightblue2", col = "transparent", alpha = .125), draw = TRUE, vp = NULL)
+
 
 ```
 
 ## testing if modeled epsilon lipid1/2 phyto vs. all are significantly different from each other
 
-### t.test(x, y, paired = TRUE, alternative = "two.sided")
-
 ```{r}
+
+### t.test(x, y, paired = TRUE, alternative = "two.sided")
 
 #epsilon C16:0/phytol
 
@@ -1954,4 +1993,7 @@ t.test(epsilon_sterol_phytol_phyto_autumn2019$eps_sterol_phytol_phyto_autumn2019
 t.test(epsilon_sterol_phytol_phyto_winter2020$eps_sterol_phytol_phyto_winter2020, 
        epsilon_sterol_phytol_mix_winter2020$eps_sterol_phytol_mix_winter2020, 
        paired = TRUE, alternative = "two.sided") 
+
+```
+
 
