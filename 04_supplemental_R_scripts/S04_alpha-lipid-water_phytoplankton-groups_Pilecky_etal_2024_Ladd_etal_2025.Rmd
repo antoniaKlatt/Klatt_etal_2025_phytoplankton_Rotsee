@@ -20,7 +20,7 @@ Sys.setlocale("LC_ALL", "English")
 
 #import data (reference data)
 
-## alpha lipid/water values algal culturing studies (Ladd et al., 2025) [https://doi.org/10.5061/dryad.nvx0k6f0v] and Pilecky et al., 2024 [https://doi.org/10.1080/10256016.2024.2419880]
+## alpha lipid/water values algal culturing studies (Ladd et al., 2025) [https://doi.org/10.1016/j.gca.2024.12.002] and Pilecky et al., 2024 [https://doi.org/10.1080/10256016.2024.2419880]
 
 alpha_lipid_cultures <- read.csv(here("02_Reference_data", "alpha_lipid_water_cultures_Ladd_etal_2024_Pilecky_etal_2024.csv"),
                                   header = TRUE , sep = ";" , stringsAsFactors = FALSE, na.strings = "#NV")
@@ -31,7 +31,7 @@ alpha_lipid_cultures <- read.csv(here("02_Reference_data", "alpha_lipid_water_cu
 
 ```{r}
 
-# assuming a normal distribution (N) with mean and SD of alpha lipid/water values from algal cultures (Ladd et al., 2024) (n= 50,000)
+# assuming a normal distribution (N) with mean and SD of alpha lipid/water values from algal cultures (Pilecky et al., 2024; Ladd et al., 2025) (n= 50,000)
 
 #N(alpha C16:0-water) 
 
