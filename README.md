@@ -1,7 +1,7 @@
 ## Algal lipid distributions and hydrogen isotope ratios reflect phytoplankton community dynamics 
 ### Antonia Klatt, Cindy De Jonge, Daniel B. Nelson, Marta Reyes, Carsten J. Schubert, Nathalie Dubois & S. Nemiah Ladd 
 
-[(https://doi.org/10.1016/j.gca.2025.02.013)]
+[https://doi.org/10.1016/j.gca.2025.02.013]
 
 In this study, we evaluated lipid δ<sup>2</sup>H values as a proxy for lacustrine phytoplankton community composition and sought to improve the reconstruction of algal communities based on holistic analyses of lipid biomarker distributions. 
 For this aim, we took water and algal biomass samples from the water column of Rotsee, a small eutrophic lake in central Sqitzerland, every second week from January 2019 to February 2020. Lipid distributions and lipid δ<sup>2</sup>H values were related to phytoplankton biovolume to assess how lipid-based indicators captured algal community shifts throughout the year.   
